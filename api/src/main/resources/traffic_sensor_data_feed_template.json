@@ -1,0 +1,27 @@
+{
+  "id": 1,
+  "city": "Chennai",
+  "timestamp": "$timestamp",
+  "roadName": "Anna Salai (Mount Road)",
+  "roadNameAsIs": "Anna Salai (Mount Road)",
+  "direction": "Southbound",
+  "noOfVehiclesEntered": $noOfVehiclesEntered,
+  "noOfVehiclesExited": $noOfVehiclesExited,
+  "maxNumberOfVehiclesPossible": 100,
+  "slowestVehicleSpeed": $slowestVehicleSpeed,
+  "fastestVehicleSpeed": $fastestVehicleSpeed,
+  "vehicleEntrySpeeds": [
+    {
+      "registration": "$reg1",
+      "speed": $speed1
+    },
+    {
+      "registration": "$reg2",
+      "speed": $speed2
+    },
+    {
+      "registration": "$reg3",
+      "speed": $speed3
+    }
+  ]
+}

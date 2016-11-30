@@ -1,0 +1,16 @@
+{
+  "transactionId": "1",
+  "cardNumber": "3",
+  "userLocation": [
+    72.877656,
+    19.075984
+  ],
+  "transactionLocation": [
+    103.819836,
+    1.352083
+  ],
+  "locationRaw": "",
+  "timestamp": "2016-10-28T06:40",
+  "bank": "HSBC",
+  "amount": 87
+}

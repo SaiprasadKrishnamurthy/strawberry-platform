@@ -1,0 +1,21 @@
+{
+  "id": 1,
+  "city": "Chennai",
+  "timestamp": "2003-03-1T01:01:25",
+  "roadName": "Anna Salai (Mount Road)",
+  "roadNameAsIs": "Anna Salai (Mount Road)",
+  "direction": "Southbound",
+  "noOfVehiclesEntered": 5,
+  "noOfVehiclesExited": 2,
+  "maxNumberOfVehiclesPossible": 100,
+  "vehicleEntrySpeeds": [
+    {
+      "registration": "ABCD",
+      "speed": 78
+    },
+    {
+      "registration": "A123",
+      "speed": 87
+    }
+  ]
+}

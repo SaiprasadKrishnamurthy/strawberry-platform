@@ -1,0 +1,157 @@
+[
+  {
+    "dataCategoryName": "library",
+    "esIndexMappings": {
+      "properties": {
+        "author": {
+          "type": "string"
+        },
+        "categories": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "id": {
+          "type": "integer"
+        },
+        "locations": {
+          "type": "nested",
+          "properties": {
+            "availableCopies": {
+              "type": "integer"
+            },
+            "name": {
+              "type": "string"
+            }
+          }
+        },
+        "title": {
+          "type": "string"
+        }
+      }
+    },
+    "reactionRules": [
+      {
+        "whenMatchedQuery": {
+          "id": 1,
+          "query": {
+            "query": {
+              "match": {
+                "author": "breakfast"
+              }
+            }
+          }
+        },
+        "thenFetchQueries": [
+          {
+            "index": "user_prefs",
+            "query": {
+              "query": {
+                "term": {
+                  "userId": {
+                    "value": "sai@kris.com"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "dataCategoryName": "traffic-sensor-stream",
+    "esIndexMappings": {
+      "properties": {
+        "timestamp": {
+          "type": "date"
+        },
+        "city": {
+          "type": "string"
+        },
+        "roadName": {
+          "type": "string"
+        },
+        "roadNameAsIs": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "direction": {
+          "type": "string"
+        },
+        "noOfVehiclesEntered": {
+          "type": "long"
+        },
+        "noOfVehiclesExited": {
+          "type": "long"
+        },
+        "id": {
+          "type": "integer"
+        },
+        "maxNumberOfVehiclesPossible": {
+          "type": "long"
+        },
+        "slowestVehicleSpeed": {
+          "type": "long"
+        },
+        "fastestVehicleSpeed": {
+          "type": "long"
+        },
+        "vehicleEntrySpeeds": {
+          "type": "nested",
+          "properties": {
+            "registration": {
+              "type": "string"
+            },
+            "speed": {
+              "type": "long"
+            }
+          }
+        }
+      }
+    },
+    "reactionRules": [
+      {
+        "whenMatchedQuery": {
+          "id": 1,
+          "query": {
+            "query": {
+              "bool": {
+                "must": [
+                  {
+                    "match": {
+                      "roadName": "anna salai"
+                    }
+                  },
+                  {
+                    "nested": {
+                      "path": "vehicleEntrySpeeds",
+                      "filter": {
+                        "range": {
+                          "vehicleEntrySpeeds.speed": {
+                            "gte": 60
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "thenFetchQueries": [
+          {
+            "index": "speed_referrals",
+            "query": {
+              "query": {
+                "match": {
+                  "officerEmail": "saiprasad.k@concordesearch.co.uk"
+                }
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

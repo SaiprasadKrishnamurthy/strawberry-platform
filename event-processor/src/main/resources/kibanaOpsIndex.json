@@ -1,0 +1,26 @@
+{
+  "properties": {
+    "payloadIdentifier": {
+      "type": "string"
+    },
+    "streamId": {
+      "type": "string",
+      "index": "not_analyzed"
+    },
+    "originatedTimestamp": {
+      "type": "date"
+    },
+    "startTime": {
+      "type": "long"
+    },
+    "processingTimeInMillis": {
+      "type": "long"
+    },
+    "error": {
+      "type": "boolean"
+    },
+    "notifiedTo": {
+      "type": "string"
+    }
+  }
+}

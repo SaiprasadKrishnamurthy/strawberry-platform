@@ -23,14 +23,14 @@ import java.util.Map;
  */
 @Api("Rest API to submit the data as a stream to be searched on the move")
 @RestController
-public class StreamingSearchResource {
+public class EventSubmissionResource {
 
     private final ActorFactory actorFactory;
 
     private static final ObjectMapper m = new ObjectMapper();
 
     @Inject
-    public StreamingSearchResource(final ActorFactory actorFactory) {
+    public EventSubmissionResource(final ActorFactory actorFactory) {
         this.actorFactory = actorFactory;
     }
 
@@ -53,7 +53,7 @@ public class StreamingSearchResource {
             @Override
             public void onComplete(Throwable failure, Object success) throws Throwable {
                 if (failure != null || !(Boolean) success) {
-                    deferredResult.setResult(new ResponseEntity<>("Message: " + failure != null ? failure.getMessage() : "NA", HttpStatus.BAD_REQUEST));
+                    deferredResult.setResult(new ResponseEntity<>("Message: " + failure != null ? failure.getMessage() : "NA", HttpStatus.CONFLICT));
                 } else {
                     deferredResult.setResult(new ResponseEntity<>(HttpStatus.OK));
                 }

@@ -36,8 +36,10 @@ public class RepositoryActor extends UntypedActor {
         } else if (message instanceof Class) {
             getSender().tell(mongoTemplate.findAll((Class<Object>) message), getSelf());
         } else if(message instanceof String) {
+            System.out.println("\t\t Querying config: "+message);
             Query query = new Query();
             query.addCriteria(Criteria.where("configId").is(message.toString()));
+            System.out.println("\t\t Query data: "+mongoTemplate.findOne(query, EventStreamConfig.class));
             getSender().tell(mongoTemplate.findOne(query, EventStreamConfig.class), getSelf());
         }
     }

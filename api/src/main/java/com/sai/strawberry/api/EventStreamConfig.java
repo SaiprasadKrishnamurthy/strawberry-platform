@@ -21,4 +21,5 @@ public class EventStreamConfig {
     private boolean persistEvent;
     private boolean enableVisualization;
     private BatchQueryConfig batchQueryConfig;
+    private boolean enabled;
 }

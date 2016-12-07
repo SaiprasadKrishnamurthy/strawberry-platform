@@ -32,6 +32,8 @@ public class KafkaProducerActor extends UntypedActor {
 
     @Override
     public void onReceive(final Object message) throws Throwable {
+        System.out.println("\t\t ---- Kafka Producer Actor: " + message);
+        System.out.println("Message instanceof map? " + (message instanceof Map));
         if (message instanceof Map) {
             ActorRef repositoryActor = actorFactory.newActor(RepositoryActor.class);
             Future<Object> eventStreamConfigFuture = Patterns.ask(repositoryActor, ((Map) message).get("topic"), RepositoryActor.timeout_in_seconds);
@@ -39,13 +41,18 @@ public class KafkaProducerActor extends UntypedActor {
                 @Override
                 public void onComplete(Throwable failure, Object success) throws Throwable {
                     EventStreamConfig eventStreamConfig = (EventStreamConfig) success;
-                    Map<String, Object> doc = new HashMap<>();
-                    doc.put("eventStreamConfig", eventStreamConfig);
-                    doc.put("payload", ((Map) message).get("payload"));
-                    try {
-                        sender.send(new ProducerRecord<>(eventStreamConfig.getConfigId(), MAPPER.writeValueAsString(doc)));
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
+                    if (!eventStreamConfig.isEnabled()) {
+                        getSender().tell(false, getSelf());
+                    } else {
+                        Map<String, Object> doc = new HashMap<>();
+                        doc.put("eventStreamConfig", eventStreamConfig);
+                        doc.put("payload", ((Map) message).get("payload"));
+                        try {
+                            System.out.println("Before sending to kafka: --> " + sender + " , " + eventStreamConfig.getConfigId());
+                            sender.send(new ProducerRecord<>(eventStreamConfig.getConfigId(), MAPPER.writeValueAsString(doc)));
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
                     }
                 }
             }, actorFactory.executionContext());

@@ -18,6 +18,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -64,6 +65,8 @@ import java.util.stream.Stream;
 @EnableKafka
 public class EventProcessorApplication {
 
+    private static final Logger LOGGER = Logger.getLogger(EventProcessorApplication.class);
+
     @Value("${mongoHost}")
     private String mongoHost;
 
@@ -102,7 +105,7 @@ public class EventProcessorApplication {
 
 
     private ActorSystem actorSystem() {
-        return ActorSystem.create("RtsActorSystem");
+        return ActorSystem.create("StrawberryActorSystem");
     }
 
     @Bean
@@ -125,14 +128,14 @@ public class EventProcessorApplication {
 
     private void initConfigs(final ActorFactory actorFactory) {
         final ObjectMapper jsonParser = new ObjectMapper();
-        System.out.println("\n\n\n------------- INITIALIZING CONFIGS --------------------");
+        System.out.println("\n\n\n------------- INITIALIZING CONFIGSS --------------------");
         Stream.of(configs)
                 .map(resource -> {
                     try {
                         System.out.println(" ******** " + resource.getFilename());
                         return Optional.of(jsonParser.readValue(IOUtils.toString(resource.getInputStream()), EventStreamConfig.class));
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        LOGGER.info("Didn't load "+resource+" in config db. Doesn't appear to be a config file.");
                         return Optional.empty();
                     }
                 })
@@ -180,6 +183,7 @@ public class EventProcessorApplication {
     }
 
     private Map<String, Object> senderProps() {
+        System.out.println("\n\n\n " + kafkaBrokersCsv);
         // OK to hard code for now. May be to move it to appProperties later.
         Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBrokersCsv);
@@ -209,10 +213,10 @@ public class EventProcessorApplication {
     }
 
     @Bean
-    KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, String>> kafkaListenerContainerFactory() {
+    public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, String>> kafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
-        factory.setConcurrency(3);
+        factory.setConcurrency(Runtime.getRuntime().availableProcessors());
         factory.getContainerProperties().setPollTimeout(3000);
         return factory;
     }

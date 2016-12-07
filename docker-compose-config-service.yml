@@ -1,0 +1,6 @@
+strawberry-config-service:
+  image: strawberry/strawberry-config-service
+  ports:
+   - 8888:8888
+  volumes:
+   - ./configs:/strawberry/configs

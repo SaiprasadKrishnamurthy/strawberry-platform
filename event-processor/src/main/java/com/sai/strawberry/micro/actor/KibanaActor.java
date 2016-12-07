@@ -32,9 +32,14 @@ public class KibanaActor extends UntypedActor {
             if (context.getConfig().isEnableVisualization()) {
                 // Find if the index pattern is already defined in Kibana.
                 RestTemplate rt = new RestTemplate();
+                boolean found = true;
                 String indexCheckUrl = esUrl + "/.kibana/index-pattern/" + context.getConfig().getConfigId();
-                Map response = rt.getForObject(indexCheckUrl, Map.class, Collections.emptyMap());
-                if (!(Boolean) response.get("found")) {
+                try {
+                    rt.getForObject(indexCheckUrl, Map.class, Collections.emptyMap());
+                } catch (Exception ex) {
+                    found = false;
+                }
+                if (!found) {
                     String endpoint = ".kibana/index-pattern/" + context.getConfig().getConfigId();
                     Map<String, String> in = new LinkedHashMap<>();
                     in.put("title", context.getConfig().getConfigId());

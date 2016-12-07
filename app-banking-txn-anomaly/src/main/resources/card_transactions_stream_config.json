@@ -115,5 +115,6 @@
     "maxNumberOfDocs": 1000000,
     "maxBatchSizeInBytes": 2147483647
   },
+  "enabled": true,
   "customProcessingHookClassName": "com.sai.app.banking.txn.EventReceiver"
 }

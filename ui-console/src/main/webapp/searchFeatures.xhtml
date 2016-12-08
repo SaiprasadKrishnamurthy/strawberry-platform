@@ -1,0 +1,63 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:fn="http://java.sun.com/jsp/jstl/functions"
+                template="layout.xhtml">
+
+    <ui:define name="left">
+        <ui:include src="includes/allLinksAsButtons.xhtml"/>
+    </ui:define>
+
+    <ui:define name="right">
+    </ui:define>
+
+    <ui:define name="main">
+
+        <p:spacer width="10" height="30"/>
+
+        <h:form id="form">
+            <p:messages id="messages" showDetail="true" autoUpdate="true" closable="true"/>
+            <h2>Search Features</h2>
+            <p:panel header="Search criteria">
+                <h:panelGrid columns="2" cellpadding="5" cellspacing="10">
+                    Text contained in the feature file
+                    <p:inputText value="#{featureController.featureText}"
+                                 placeholder="Text contained in the feature file" size="35"/>
+                    One or more Tags in the feature file (eg: @ui@config)
+                    <p:inputText value="#{featureController.tags}" placeholder="Tags" size="35"/>
+                    <p:commandButton value="search" icon="ui-icon-search"
+                                     actionListener="#{featureController.searchFeatures}"
+                                     update=":#{p:component('form')}"/>
+                </h:panelGrid>
+            </p:panel>
+            <p:separator></p:separator>
+            <p:dataTable var="f" value="#{featureController.featureSearchResults}" rows="5"
+                         paginator="true"
+                         paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                         rowsPerPageTemplate="5,10,30,50"
+                         rendered="#{not empty featureController.featureSearchResults}">
+                <p:column headerText="Feature Id (System generated)">
+                    <p:link outcome="featureDetail" value="#{f.id}">
+                        <f:param name="featureId" value="#{f.id}"/>
+                    </p:link>
+                </p:column>
+
+                <p:column headerText="File Name">
+                    <p:link outcome="featureDetail" value="#{f.fileName}">
+                        <f:param name="featureId" value="#{f.id}"/>
+                    </p:link>
+                </p:column>
+
+                <p:column headerText="Feature Partial Content">
+                    <p:link outcome="featureDetail"
+                            value="#{fn:substring(f.rawContents, 0, 120)}...">
+                        <f:param name="featureId" value="#{f.id}"/>
+                    </p:link>
+                </p:column>
+            </p:dataTable>
+        </h:form>
+    </ui:define>
+</ui:composition>

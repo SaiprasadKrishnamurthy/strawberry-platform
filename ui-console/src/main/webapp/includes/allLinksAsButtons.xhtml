@@ -1,0 +1,30 @@
+<h:form xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:ui="http://java.sun.com/jsf/facelets"
+        xmlns:h="http://java.sun.com/jsf/html"
+        xmlns:f="http://java.sun.com/jsf/core"
+        xmlns:p="http://primefaces.org/ui">
+    <p:panelMenu style="width:200px">
+        <p:submenu label="Analytics">
+            <p:menuitem value="Find Insights" url="analyze.do" icon="fa fa-eye"/>
+            <p:menuitem value="Add Metadata" url="meta.do" icon="fa fa-wrench"/>
+        </p:submenu>
+        <p:separator/>
+
+        <p:submenu label="Reporting">
+            <p:menuitem value="Adhoc Reports" url="reports.do" icon="fa fa-pie-chart"/>
+            <p:menuitem value="Schedule Reports" url="allFeatures.do" icon="fa fa-clock-o"/>
+        </p:submenu>
+
+        <p:submenu label="Dashboards" icon="">
+            <p:menuitem value="Favourite Dashboards" url="dashboards.do" icon="fa fa-dashboard"/>
+            <p:menuitem value="Dashboard" url="dashboard.do" icon="fa fa-dashboard"/>
+        </p:submenu>
+
+        <p:submenu label="General">
+            <p:menuitem value="Home" url="homePage.do" icon="fa fa-home"/>
+            <p:menuitem value="About" url="homePage.do" icon="fa fa-question-circle"/>
+        </p:submenu>
+
+    </p:panelMenu>
+
+</h:form>

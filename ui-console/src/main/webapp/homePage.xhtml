@@ -1,0 +1,82 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsp/jstl/functions"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                template="layout.xhtml">
+
+
+    <ui:define name="main">
+
+        <p:spacer width="10" height="30"/>
+
+        <h:form id="form">
+            <p:accordionPanel value="#{ui.configs}" var="config">
+                <p:tab title="Stream config: #{config.configId}">
+                    <h:panelGrid columns="2">
+                        <h:outputText value="Primary Key Field" style="font-weight: bold"/>
+                        <h:outputText value="#{config.documentIdField}"/>
+
+                        <h:outputText value="Save event" style="font-weight: bold"/>
+                        <h:outputText value="#{config.persistEvent}"/>
+
+                        <h:outputText value="Visualization enabled" style="font-weight: bold"/>
+                        <h:outputText value="#{config.enableVisualization}"/>
+
+                        <h:outputText value="Ops Dashboard" escape="false" style="font-weight: bold"/>
+                        <a href="#{ui.dashboard}" target="_blank">click me</a>
+                    </h:panelGrid>
+
+                    <p:spacer height="10" />
+
+                    <p:tabView>
+                        <p:tab title="Data Definition">
+                                <p:panel id="es" header="Elasticsearch index definition">
+                                    <pe:codeMirror id="esc"
+                                                   theme="rubyblue" value="#{config.indexDefinitionJson}"
+                                                   lineNumbers="true" size="100%" readonly="true"/>
+                                </p:panel>
+                                <p:panel id="sq" header="SQL Definition (DDL)"
+                                         rendered="#{f:length(config.sqlDDL) &gt; 0}">
+                                    <pe:codeMirror id="sqc"
+                                                   theme="rubyblue" mode="sql" value="#{config.sqlDDL}"
+                                                   lineNumbers="true" size="100%" readonly="true"/>
+                                </p:panel>
+                        </p:tab>
+                        <p:tab title="Data Transformation">
+                            <h:panelGrid columns="2" cellpadding="10">
+                                <h:outputText value="Custom Data Transformation Java Class: "
+                                              style="font-weight: bold"/>
+                                <h:outputText value="#{config.customProcessingHookClassName}"
+                                              style="font-weight: bold"/>
+                            </h:panelGrid>
+                        </p:tab>
+                        <p:tab title="Event Notification Rules">
+                                <ui:repeat value="#{config.esNotificationQueries}" var="es">
+                                    <p:panel id="esn" header="Notify to: #{es.name}   (Elasticsearch Query)"
+                                             toggleable="true">
+                                        <pe:codeMirror id="sqc"
+                                                       theme="rubyblue" value="#{es.value}"
+                                                       lineNumbers="true" size="100%" readonly="true"/>
+                                    </p:panel>
+                                </ui:repeat>
+
+
+                            <ui:repeat value="#{config.sqlNotificationQueries}" var="es">
+                                <p:panel id="esn" header="Notify to: #{es.name}   (SQL Query)" toggleable="true">
+                                    <h:panelGrid columns="1">
+                                        <pe:codeMirror id="sqc"
+                                                       theme="rubyblue" value="#{es.value}"
+                                                       lineNumbers="true" size="100%" readonly="true"/>
+                                    </h:panelGrid>
+                                </p:panel>
+                            </ui:repeat>
+                        </p:tab>
+                    </p:tabView>
+                </p:tab>
+            </p:accordionPanel>
+        </h:form>
+    </ui:define>
+</ui:composition>

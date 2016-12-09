@@ -57,11 +57,13 @@ public class ESPercolationSetupActor extends UntypedActor {
                 Map<String, Object> percolateDoc = new LinkedHashMap<>();
 
                 int id = 1;
-                for (Map.Entry<String, Map<String, Object>> entry : watchQueries.entrySet()) {
-                    percolateDoc.put("query", entry.getValue());
-                    percolateDoc.put("queryName", entry.getKey());
-                    restTemplate.postForObject(esUrl + "/" + config.getConfigId() + "/.percolator/" + id, JSONSERIALIZER.writeValueAsString(percolateDoc).replace("##", "."), Object.class, Collections.emptyMap());
-                    id++;
+                if (watchQueries != null) {
+                    for (Map.Entry<String, Map<String, Object>> entry : watchQueries.entrySet()) {
+                        percolateDoc.put("query", entry.getValue());
+                        percolateDoc.put("queryName", entry.getKey());
+                        restTemplate.postForObject(esUrl + "/" + config.getConfigId() + "/.percolator/" + id, JSONSERIALIZER.writeValueAsString(percolateDoc).replace("##", "."), Object.class, Collections.emptyMap());
+                        id++;
+                    }
                 }
             }
         } catch (Exception ex) {

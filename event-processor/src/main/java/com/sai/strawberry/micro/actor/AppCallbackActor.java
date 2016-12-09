@@ -4,11 +4,8 @@ import akka.actor.UntypedActor;
 import com.sai.strawberry.api.CustomProcessorHook;
 import com.sai.strawberry.api.EventStreamConfig;
 import com.sai.strawberry.micro.model.EventProcessingContext;
-import groovy.lang.Binding;
-import groovy.lang.GroovyShell;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -33,10 +30,7 @@ public class AppCallbackActor extends UntypedActor {
         if (message instanceof EventProcessingContext) {
             EventProcessingContext context = (EventProcessingContext) message;
             if (context.getConfig().getCustomProcessingHookClassName() != null) {
-                System.out.println(" _______________________________ ");
                 Map doc = invokeCallback(context.getConfig(), context.getDoc());
-                System.out.println(doc);
-                System.out.println(" _______________________________ ");
                 _ctx = new EventProcessingContext(doc, context.getConfig(), context.getStartTimestamp());
             }
         }

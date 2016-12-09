@@ -18,8 +18,11 @@ public class EventStreamConfig {
     private boolean durableNotification;
     private Map<String, Object> indexDefinition;
     private Map<String, Map<String, Object>> watchQueries;
+    private Map<String, String> watchQueriesSql;
+    private String sqlDDL;
     private boolean persistEvent;
     private boolean enableVisualization;
     private BatchQueryConfig batchQueryConfig;
     private boolean enabled;
+    private Map<String, Object> internal;
 }

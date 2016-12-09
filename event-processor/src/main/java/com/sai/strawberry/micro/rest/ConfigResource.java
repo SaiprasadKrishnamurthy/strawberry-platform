@@ -89,4 +89,25 @@ public class ConfigResource {
 
         return deferredResult;
     }
+
+    @ApiOperation("Gets the ops dashboard")
+    @CrossOrigin(methods = {RequestMethod.POST, RequestMethod.PUT, RequestMethod.OPTIONS, RequestMethod.GET})
+    @RequestMapping(value = "/ops-dashboard-link", method = RequestMethod.GET, produces = "text/html")
+    public DeferredResult<ResponseEntity<String>> dashboardLink() throws Exception {
+        DeferredResult<ResponseEntity<String>> deferredResult = new DeferredResult<>(5000L);
+        StringBuilder out = new StringBuilder();
+        out.append(kibanaUrl)
+                .append("/app/kibana#/dashboard/")
+                .append("Strawberry-Ops-Dashboard");
+
+        Future<Object> results = Futures.successful(out);
+
+        results.onSuccess(new OnSuccess<Object>() {
+            public void onSuccess(final Object results) {
+                deferredResult.setResult(new ResponseEntity<>(results.toString(), HttpStatus.OK));
+            }
+        }, actorFactory.executionContext());
+
+        return deferredResult;
+    }
 }

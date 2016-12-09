@@ -38,12 +38,10 @@ public class ESIndexActor extends UntypedActor {
                     lock.lock();
                     Bulk.Builder bulkBuilder = new Bulk.Builder();
                     for (Map payloadDoc : payloadsTobeIndexedToEs) {
-                        System.out.println(payloadDoc);
                         Index index = new Index.Builder(payloadDoc).index(payloadDoc.get("__configId__").toString()).type(payloadDoc.get("__configId__").toString()).id(payloadDoc.get("__naturalId__").toString()).build();
                         bulkBuilder.addAction(index);
                     }
                     jestClient.execute(bulkBuilder.build());
-                    System.out.println("\t\t Indexed -- ");
                     payloadsTobeIndexedToEs.clear();
                 } finally {
                     lock.unlock();

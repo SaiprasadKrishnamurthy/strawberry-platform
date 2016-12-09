@@ -28,17 +28,16 @@ public class EventProcessingService {
 
     public void process(final String data) {
         try {
-            System.out.println(data + " --> " + actorFactory);
             Map doc = MAPPER.readValue(data, Map.class);
             EventStreamConfig eventStreamConfig = MAPPER.convertValue(doc.get("eventStreamConfig"), EventStreamConfig.class);
             // Add the identifiers.
 
             Map payload = (Map) doc.get("payload");
+            long timestamp = (long) doc.get("timestamp");
             payload.put("__configId__", eventStreamConfig.getConfigId());
             payload.put("__naturalId__", payload.get(eventStreamConfig.getDocumentIdField()));
 
-
-            EventProcessingContext context = new EventProcessingContext(payload, eventStreamConfig, System.currentTimeMillis());
+            EventProcessingContext context = new EventProcessingContext(payload, eventStreamConfig, timestamp);
 
             ActorRef persistenceActor = actorFactory.newActor(MongoPersistenceActor.class);
             ActorRef batchSetupActor = actorFactory.newActor(MongoBatchsetupActor.class);
@@ -47,8 +46,7 @@ public class EventProcessingService {
 
             ActorRef appCallbackActor = actorFactory.newActor(AppCallbackActor.class);
             ActorRef esPercolationActor = actorFactory.newActor(ESPercolationActor.class);
-            ActorRef notificationActor = actorFactory.newActor(NotificationActor.class);
-            ActorRef opsIndexActor = actorFactory.newActor(OpsIndexActor.class);
+            ActorRef watcherSqlDbSetupActor = actorFactory.newActor(WatcherSQLDBActor.class);
 
             // Full ASYNC one way.
             batchSetupActor.tell(context, ActorRef.noSender());
@@ -59,7 +57,10 @@ public class EventProcessingService {
             // The below ones must be done in a sequence, but still async.
             Future<Object> appCallbackFuture = Patterns.ask(appCallbackActor, context, AppCallbackActor.timeout_in_seconds);
             Patterns.pipe(appCallbackFuture, actorFactory.executionContext())
-                    .to(esPercolationActor);
+                    .to(esPercolationActor)
+                    .to(watcherSqlDbSetupActor);
+
+
         } catch (Exception ex) {
             ex.printStackTrace();
         }

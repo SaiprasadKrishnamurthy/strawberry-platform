@@ -22,7 +22,6 @@ public class EventListener {
 
     @KafkaListener(id = "id01", topics = "${kafkaInputTopic}", group = "${kafkaConsumerGroup}")
     public void listen(final ConsumerRecord<String, String> record) {
-        System.out.println(" Received an Event ==> "+record);
         eventProcessingService.process(record.value());
     }
 }

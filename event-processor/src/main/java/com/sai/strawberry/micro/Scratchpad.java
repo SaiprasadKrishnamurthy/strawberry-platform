@@ -1,12 +1,14 @@
 package com.sai.strawberry.micro;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sai.strawberry.api.EventStreamConfig;
+import org.apache.commons.dbcp2.BasicDataSource;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ResultSetExtractor;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
-
-import static java.util.stream.Collectors.joining;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.util.Map;
 
 /**
  * Created by saipkri on 17/11/16.
@@ -14,59 +16,32 @@ import static java.util.stream.Collectors.joining;
 public class Scratchpad {
     public static void mains(String[] args) throws Exception {
 
-        /*System.out.println(Strings.commonPrefix("oliviersergent", "oliversargent"));
+        String sql = "CREATE TABLE IF NOT EXISTS card_txns(ID INT PRIMARY KEY, NAME VARCHAR(255))";
+        BasicDataSource ds = new BasicDataSource();
+        ds.setUrl("jdbc:h2:mem:card-txns;DB_CLOSE_DELAY=-1");
+        ds.setDriverClassName("org.h2.Driver");
+        ds.setInitialSize(10);
+        ds.setMaxTotal(30);
+        ds.setPoolPreparedStatements(true);
+        ds.setMaxOpenPreparedStatements(30);
 
-        System.out.println(StringUtils.getLevenshteinDistance("oliviersergent", "oliversargent"));
+        JdbcTemplate j = new JdbcTemplate(ds);
+        j.execute(sql);
 
-        String one = "oliviersergent";
-        String two = "oliversargent";
+        j.query("select * from card_txns", new ResultSetExtractor<Integer>() {
 
-        int longer = one.length() > two.length() ? one.length() : two.length();
+            @Override
+            public Integer extractData(ResultSet rs) throws SQLException, DataAccessException {
 
-
-        System.out.println(StringUtils.overlay(one, two, 0, longer));
-
-
-        double[] v1 = {0, 2, 5};
-        double[] v2 = {0, 2, 4};
-        System.out.println(new EuclideanDistance().compute(v1, v2));
-
-        String vowels = "aeiou";
-        int chars = 2;
-
-        recurse(vowels, 0, 2);
-
-
-
-    }
-
-    static void recurse(String main, int mainIdx, int n) {
-
-        if (mainIdx >= main.length()) {
-            return;
-        } else {
-            for (int i = mainIdx; i < main.length(); i++) {
-                for (int j = i; j < i + n && j < main.length(); j++) {
-                    System.out.print(main.toCharArray()[j]);
+                ResultSetMetaData rsmd = rs.getMetaData();
+                int columnCount = rsmd.getColumnCount();
+                for (int i = 1; i <= columnCount; i++) {
+                    System.out.println(rsmd.getColumnName(i));
+                    System.out.println(rsmd.getColumnClassName(i));
                 }
-                System.out.println();
+                return columnCount;
             }
-        }
-    }*/
-
-
-        String groovyScript = Files.lines(Paths.get("/Users/saipkri/learning/strawberry/rest/src/main/resources/custom.groovy")).collect(joining("\n"));
-        EventStreamConfig doc = new ObjectMapper().readValue(Scratchpad.class.getClassLoader().getResourceAsStream("card_transactions_stream_config.json"), EventStreamConfig.class);
-        doc.setCustomProcessingHookScript(groovyScript);
-
-        System.out.println(new ObjectMapper().writeValueAsString(doc));
-
-       /* Binding binding = new Binding();
-        binding.setVariable("config", doc);
-        binding.setVariable("jsonIn", doc);
-        GroovyShell shell = new GroovyShell(binding);
-        Map returnDoc = (Map) shell.evaluate(doc.getCustomProcessingHookScript());
-        System.out.println(returnDoc);*/
+        });
 
 
     }

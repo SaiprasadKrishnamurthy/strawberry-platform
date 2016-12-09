@@ -71,7 +71,6 @@ public class KibanaEngineDashboardSetupActor extends UntypedActor {
                 Map source = (Map) object.get("_source");
                 try {
                     rt.postForObject(esUrl + "/" + ".kibana/" + typ.trim() + "/" + id.trim(), objectMapper.writeValueAsString(source), Map.class, Collections.emptyMap());
-                    System.out.println("****** Canned object loaded ********** ");
                 } catch (JsonProcessingException e) {
                     // TODO log.
                     e.printStackTrace();

@@ -32,46 +32,45 @@ public class ESPercolationActor extends UntypedActor {
     public void onReceive(final Object message) throws Throwable {
         if (message instanceof EventProcessingContext) {
             EventProcessingContext context = (EventProcessingContext) message;
-            RestTemplate rt = new RestTemplate();
-            String topic = context.getConfig().getConfigId();
+            if (context.getConfig().getWatchQueries() != null && !context.getConfig().getWatchQueries().isEmpty()) {
+                RestTemplate rt = new RestTemplate();
+                String topic = context.getConfig().getConfigId();
 
-            System.out.println("Percolation entered: ----> " + context.getDoc());
+                // Percolate the query.
+                Map docTobePercolated = new HashMap<>();
+                docTobePercolated.put("doc", context.getDoc());
 
-            // Percolate the query.
-            Map docTobePercolated = new HashMap<>();
-            docTobePercolated.put("doc", context.getDoc());
+                Map percolationResponse = rt.postForObject(esUrl + "/" + topic + "/" + topic + "/_percolate", objectMapper.writeValueAsString(docTobePercolated), Map.class, Collections.emptyMap());
+                List<Map> matches = (List<Map>) percolationResponse.get("matches");
 
-            Map percolationResponse = rt.postForObject(esUrl + "/" + topic + "/" + topic + "/_percolate", objectMapper.writeValueAsString(docTobePercolated), Map.class, Collections.emptyMap());
-            List<Map> matches = (List<Map>) percolationResponse.get("matches");
+                List<String> notifiedChannels = new ArrayList<>();
 
-            System.out.println("\t\t Percolation matches: " + matches);
+                // Get the individual matched query
+                for (Map matchedQuery : matches) {
 
-            List<String> notifiedChannels = new ArrayList<>();
+                    // SEND IT TO NOTIFICATION ACTOR.
+                    ActorRef notificationActor = actorFactory.newActor(NotificationActor.class);
 
-            // Get the individual matched query
-            for (Map matchedQuery : matches) {
+                    String queryId = matchedQuery.get("_id").toString();
+                    Map percolationQueryObject = rt.getForObject(esUrl + "/" + topic + "/.percolator/" + queryId, Map.class);
+                    String queryName = ((Map) percolationQueryObject.get("_source")).get("queryName").toString();
 
-                // SEND IT TO NOTIFICATION ACTOR.
-                ActorRef notificationActor = actorFactory.newActor(NotificationActor.class);
+                    notifiedChannels.add(queryName.trim());
+                    notificationActor.tell(new NotificationTuple(context, queryName), getSelf());
+                }
 
-                String queryId = matchedQuery.get("_id").toString();
-                Map percolationQueryObject = rt.getForObject(esUrl + "/" + topic + "/.percolator/" + queryId, Map.class);
-                String queryName = ((Map) percolationQueryObject.get("_source")).get("queryName").toString();
-
-                notifiedChannels.add(queryName.trim());
-                notificationActor.tell(new NotificationTuple(context, queryName), getSelf());
+                // Construct an event now.
+                // SEND IT TO OPS ACTOR.
+                ActorRef opsIndexActor = actorFactory.newActor(OpsIndexActor.class);
+                ProcessorEvent event = new ProcessorEvent();
+                event.setStreamId(context.getConfig().getConfigId());
+                event.setStartTime(context.getStartTimestamp());
+                event.setOriginatedTimestamp(format.format(new Date()));
+                event.setProcessingTimeInMillis(System.currentTimeMillis() - context.getStartTimestamp());
+                event.setNotifiedTo(notifiedChannels.toArray(new String[notifiedChannels.size()]));
+                event.setPayloadIdentifier(context.getDoc().get("__naturalId__").toString());
+                opsIndexActor.tell(event, getSelf());
             }
-
-            // Construct an event now.
-            // SEND IT TO OPS ACTOR.
-            ActorRef opsIndexActor = actorFactory.newActor(OpsIndexActor.class);
-            ProcessorEvent event = new ProcessorEvent();
-            event.setStreamId(context.getConfig().getConfigId());
-            event.setOriginatedTimestamp(format.format(new Date()));
-            event.setProcessingTimeInMillis(System.currentTimeMillis() - event.getStartTime());
-            event.setNotifiedTo(notifiedChannels.toArray(new String[notifiedChannels.size()]));
-            event.setPayloadIdentifier(context.getDoc().get("__naturalId__").toString());
-            opsIndexActor.tell(event, getSelf());
         }
         getSender().tell(message, getSelf());
     }

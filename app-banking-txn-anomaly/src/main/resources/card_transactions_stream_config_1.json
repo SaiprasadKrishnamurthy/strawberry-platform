@@ -1,0 +1,59 @@
+{
+  "configId": "card_txns_1",
+  "durableNotification": true,
+  "documentIdField": "transactionId",
+  "indexDefinition": {
+    "properties": {
+      "timestamp": {
+        "type": "date"
+      },
+      "transactionId": {
+        "type": "string"
+      },
+      "cardNumber": {
+        "type": "string",
+        "index": "not_analyzed"
+      },
+      "cardHolderNationality": {
+        "type": "string",
+        "index": "not_analyzed"
+      },
+      "userLocation": {
+        "type": "geo_point"
+      },
+      "transactionLocation": {
+        "type": "geo_point"
+      },
+      "transactionLocationRaw": {
+        "type": "string"
+      },
+      "bank": {
+        "type": "string",
+        "index": "not_analyzed"
+      },
+      "amount": {
+        "type": "long"
+      },
+      "custom__": {
+        "type": "nested",
+        "properties": {
+          "highValueTransaction": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  },
+  "persistEvent": true,
+  "enableVisualization": true,
+  "batchQueryConfig": {
+    "maxNumberOfDocs": 1000000,
+    "maxBatchSizeInBytes": 2147483647
+  },
+  "sqlDDL": "CREATE TABLE IF NOT EXISTS card_txns_1(transactionId VARCHAR(255) PRIMARY KEY, amount NUMBER)",
+  "watchQueriesSql": {
+    "transaction_amount_anomalies": "SELECT * FROM card_txns_1 WHERE amount > 20"
+  },
+  "enabled": true,
+  "customProcessingHookClassName": "com.sai.app.banking.txn.EventReceiver"
+}

@@ -32,7 +32,6 @@ public class OpsIndexActor extends UntypedActor {
 
     @Override
     public void onReceive(final Object message) throws Throwable {
-        System.out.println(" *** OpsIndexActor:    " + message);
         if (message instanceof ProcessorEvent) {
             ProcessorEvent event = (ProcessorEvent) message;
             payloadsTobeIndexedToEs.add(event);
@@ -41,12 +40,10 @@ public class OpsIndexActor extends UntypedActor {
                     lock.lock();
                     Bulk.Builder bulkBuilder = new Bulk.Builder();
                     for (ProcessorEvent payloadDoc : payloadsTobeIndexedToEs) {
-                        System.out.println(payloadDoc);
                         Index index = new Index.Builder(payloadDoc).index(opsIndexName).type(opsIndexName).id(UUID.randomUUID().toString()).build();
                         bulkBuilder.addAction(index);
                     }
                     jestClient.execute(bulkBuilder.build());
-                    System.out.println("\t\t Indexed for OPS-- ");
                     payloadsTobeIndexedToEs.clear();
                 } finally {
                     lock.unlock();

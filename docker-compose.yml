@@ -2,6 +2,10 @@ app-banking-txn-anomaly-service:
   ports:
    - 9999:9999
   image: strawberry/app-banking-txn-anomaly
+strawberry-ui-console:
+  ports:
+   - 8080:8080
+  image: strawberry/ui-console
 elasticsearch:
   image: elasticsearch:2.4
   container_name: elasticsearch

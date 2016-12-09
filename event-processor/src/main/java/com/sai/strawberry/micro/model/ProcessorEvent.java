@@ -11,7 +11,7 @@ public class ProcessorEvent {
     private String[] notifiedTo;
     private String streamId;
     private String originatedTimestamp;
-    private long startTime = System.currentTimeMillis();
+    private long startTime;
     private long processingTimeInMillis;
     private boolean error;
 }

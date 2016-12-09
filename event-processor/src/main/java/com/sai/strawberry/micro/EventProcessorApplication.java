@@ -2,6 +2,7 @@ package com.sai.strawberry.micro;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
+import akka.pattern.Patterns;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Predicates;
 import com.mongodb.MongoClient;
@@ -9,10 +10,12 @@ import com.sai.strawberry.api.EventStreamConfig;
 import com.sai.strawberry.micro.actor.ESPercolationSetupActor;
 import com.sai.strawberry.micro.actor.KibanaEngineDashboardSetupActor;
 import com.sai.strawberry.micro.actor.RepositoryActor;
+import com.sai.strawberry.micro.actor.WatcherSQLDBSetupActor;
 import com.sai.strawberry.micro.config.ActorFactory;
 import io.searchbox.client.JestClient;
 import io.searchbox.client.JestClientFactory;
 import io.searchbox.client.config.HttpClientConfig;
+import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.commons.io.IOUtils;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -33,12 +36,14 @@ import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.config.KafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
+import scala.concurrent.Future;
 import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
@@ -103,6 +108,9 @@ public class EventProcessorApplication {
     @Value("${kibanaOpsIndexName ?: strawberryOpsIdx}")
     private String kibanaOpsIndexName;
 
+    @Value("${sqlDbConnectionPoolSize ?: 30}")
+    private int sqlDbConnectionPoolSize;
+
 
     private ActorSystem actorSystem() {
         return ActorSystem.create("StrawberryActorSystem");
@@ -115,7 +123,7 @@ public class EventProcessorApplication {
 
     @Bean
     public ActorFactory actorFactory(final MongoTemplate mongoTemplate) throws Exception {
-        ActorFactory actorFactory = new ActorFactory(actorSystem(), kafkaProducer(), jestClient(), mongoTemplate, mongoForBatch(), esIndexBatchSize, esUrl, kibanaOpsIndexName.toLowerCase().trim());
+        ActorFactory actorFactory = new ActorFactory(actorSystem(), kafkaProducer(), jestClient(), mongoTemplate, mongoForBatch(), esIndexBatchSize, esUrl, kibanaOpsIndexName.toLowerCase().trim(), jdbcTemplate());
         initConfigs(actorFactory);
         return actorFactory;
     }
@@ -135,15 +143,19 @@ public class EventProcessorApplication {
                         System.out.println(" ******** " + resource.getFilename());
                         return Optional.of(jsonParser.readValue(IOUtils.toString(resource.getInputStream()), EventStreamConfig.class));
                     } catch (IOException e) {
-                        LOGGER.info("Didn't load "+resource+" in config db. Doesn't appear to be a config file.");
+                        LOGGER.info("Didn't load " + resource + " in config db. Doesn't appear to be a config file.");
                         return Optional.empty();
                     }
                 })
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .forEach(config -> {
+                    ActorRef watcherSqlDbSetupActor = actorFactory.newActor(WatcherSQLDBSetupActor.class);
+                    Future<Object> watcherSqlDbSetupActorFuture = Patterns.ask(watcherSqlDbSetupActor, config, WatcherSQLDBSetupActor.timeout_in_seconds);
                     ActorRef repoActor = actorFactory.newActor(RepositoryActor.class);
-                    repoActor.tell(config, ActorRef.noSender());
+
+                    Patterns.pipe(watcherSqlDbSetupActorFuture, actorFactory.executionContext())
+                            .to(repoActor);
 
                     // Setup the percolation.
                     ActorRef esPercolationSetupActor = actorFactory.newActor(ESPercolationSetupActor.class);
@@ -180,6 +192,18 @@ public class EventProcessorApplication {
     @Bean
     public KafkaProducer<String, String> kafkaProducer() {
         return new KafkaProducer<>(senderProps());
+    }
+
+    @Bean
+    public JdbcTemplate jdbcTemplate() {
+        BasicDataSource ds = new BasicDataSource();
+        ds.setUrl("jdbc:h2:mem:strawberry-memdb;DB_CLOSE_DELAY=-1");
+        ds.setDriverClassName("org.h2.Driver");
+        ds.setInitialSize(sqlDbConnectionPoolSize);
+        ds.setMaxTotal(sqlDbConnectionPoolSize);
+        ds.setPoolPreparedStatements(true);
+        ds.setMaxOpenPreparedStatements(sqlDbConnectionPoolSize);
+        return new JdbcTemplate(ds);
     }
 
     private Map<String, Object> senderProps() {

@@ -129,14 +129,18 @@ public class EventStreamConfig {
 
     public List<NotificationRule> getEsNotificationQueries() {
         Map<String, Map<String, Object>> wq = getWatchQueries();
-        return esNotificationQueries = wq.entrySet().stream().map(entry -> {
-            try {
-                return new NotificationRule(entry.getKey(), o.writeValueAsString(entry.getValue()));
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-                return new NotificationRule(entry.getKey(), "{}");
-            }
-        }).collect(toList());
+        if (wq != null) {
+            return esNotificationQueries = wq.entrySet().stream().map(entry -> {
+                try {
+                    return new NotificationRule(entry.getKey(), o.writeValueAsString(entry.getValue()));
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                    return new NotificationRule(entry.getKey(), "{}");
+                }
+            }).collect(toList());
+        } else {
+            return Collections.emptyList();
+        }
     }
 
     public List<NotificationRule> getSqlNotificationQueries() {

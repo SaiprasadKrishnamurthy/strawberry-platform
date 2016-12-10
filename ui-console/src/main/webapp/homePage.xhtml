@@ -7,12 +7,17 @@
                 xmlns:pe="http://primefaces.org/ui/extensions"
                 template="layout.xhtml">
 
+    <ui:define name="left">
+        <ui:include src="includes/allLinksAsButtons.xhtml"/>
+    </ui:define>
+
 
     <ui:define name="main">
 
         <p:spacer width="10" height="30"/>
 
         <h:form id="form">
+            <h2>Event Stream configuration details</h2>
             <p:accordionPanel value="#{ui.configs}" var="config">
                 <p:tab title="Stream config: #{config.configId}">
                     <h:panelGrid columns="2">

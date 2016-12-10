@@ -1,0 +1,27 @@
+{
+  "configId": "__eid",
+  "durableNotification": true,
+  "documentIdField": "pk",
+  "indexDefinition": {
+    "properties": {
+    }
+  },
+  "persistEvent": true,
+  "enableVisualization": true,
+  "batchQueryConfig": {
+    "maxNumberOfDocs": 1000000,
+    "maxBatchSizeInBytes": 2147483647
+  },
+  "watchQueries": {
+    "channel_1": {
+    },
+    "channel_2": {
+    }
+  },
+  "sqlDDL": "CREATE TABLE IF NOT EXISTS __eid(pk VARCHAR(255) PRIMARY KEY, amount NUMBER)",
+  "watchQueriesSql": {
+    "channel_1": "SELECT * FROM __eid WHERE amount > 20"
+  },
+  "enabled": true,
+  "customProcessingHookClassName": "__gid.EventReceiver"
+}

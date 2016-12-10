@@ -1,0 +1,39 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html"
+                template="layout.xhtml">
+
+    <ui:define name="left">
+        <ui:include src="includes/allLinksAsButtons.xhtml"/>
+    </ui:define>
+
+
+    <ui:define name="main">
+
+        <p:spacer width="10" height="30"/>
+
+        <h:form id="form">
+            <h2>Build a New App</h2>
+            <p:messages id="messages" showDetail="true" autoUpdate="true" closable="true" />
+            <h:panelGrid columns="2">
+                <h:outputText value="Maven group id" style="font-weight: bold"/>
+                <p:inputText value="#{ui.groupId}"/>
+                <h:outputText value="Maven artifact id" style="font-weight: bold"/>
+                <p:inputText value="#{ui.artifactId}"/>
+                <h:outputText value="App version" style="font-weight: bold"/>
+                <p:inputText value="#{ui.version}"/>
+                <h:outputText value="Event name" style="font-weight: bold"/>
+                <p:inputText value="#{ui.eventName}"/>
+                <h:outputText value="App Description" style="font-weight: bold"/>
+                <p:inputTextarea rows="6" cols="33" value="#{ui.description}"/>
+                <h:outputText value="Configuration server url" style="font-weight: bold"/>
+                <p:inputText value="#{ui.configUrl}"/>
+                <p:commandButton value="With Icon" id="withIcon" actionListener="#{ui.newApp}" icon="ui-icon-disk"
+                                 ajax="false" update="messages"/>
+
+
+            </h:panelGrid>
+        </h:form>
+    </ui:define>
+</ui:composition>

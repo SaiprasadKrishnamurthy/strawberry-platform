@@ -39,6 +39,10 @@ In a typical Big Data world of events processing, there are quite a lot of chall
 ## Logical High Level Architecture ##
 ![Alt text](HighLevelLogicalArch.png?raw=true "High Level Logical Architecture")
 
+## Technology Stack ##
+![Alt text](tech_stack.png?raw=true "Tech stack")
+
+
 ## This is what happens inside the platform ##
 ![Alt text](Strawberry_Dissection.png?raw=true "This is what happens inside the platform")
 

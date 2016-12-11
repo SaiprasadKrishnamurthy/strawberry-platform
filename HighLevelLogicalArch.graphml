@@ -701,7 +701,7 @@ PLATFORM<y:LabelModel>
     <node id="n16">
       <data key="d6">
         <y:GenericNode configuration="com.yworks.flowchart.cloud">
-          <y:Geometry height="40.0" width="79.04764938354492" x="118.47617530822754" y="344.0"/>
+          <y:Geometry height="40.0" width="79.04764938354492" x="109.47617530822754" y="344.0"/>
           <y:Fill color="#E8EEF7" color2="#B7C9E3" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="6" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="11.06640625" modelName="custom" textColor="#000000" visible="true" width="61.0703125" x="8.988668441772461" y="14.466796875">Event 1 Notification<y:LabelModel>

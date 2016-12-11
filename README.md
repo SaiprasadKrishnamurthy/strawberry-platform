@@ -42,6 +42,60 @@ In a typical Big Data world of events processing, there are quite a lot of chall
 ## This is what happens inside the platform ##
 ![Alt text](Strawberry_Dissection.png?raw=true "This is what happens inside the platform")
 
+## PREREQUISITES (FOR A DEV SETUP)##
+* Java 8
+* Maven 3
+* Docker (Latest)
+
+## MODULES ##
+ - api - Java API (Model objects).
+ - config-service - Microservice that exposes all the configuration to the platform (db url, elasticsearch url etc etc).
+ - configs - File system based configuration files which will be exposed by the config-service.
+ - event-processor - The strawberry platform. Remember, the platform cannot run on it's own. It is bundled along with the app.
+ - app-banking-txn-anomaly - A sample APP that runs on the platform. This app has a config file in the resources directory. This file is the bible for the platform to follow the instructions to process the event. com.sai.app.banking.txn.EventReceiver is a java class that contains the business logic to enrich the incoming event data to be later used in the notification framework.
+ - ui-console - A simple UI to view the configurations of a running app and also a few utilities to quicky create a template of an app for rapid development.
+
+## STEPS TO BUILD ##
+* Open the config-service/src/main/resources/application.properties - Change the file location defined in the spring.```cloud.config.server.native.searchLocations``` property to point the correct location inside configs module. 
+* Open a Docker Terminal (If you're using a Non-Linux OS), Use Docker Tookbox. It is simple to use. Refer to it's website for installation instructions specific to your OS.
+* All the below commands must be run on this shell only.
+* Go to config-service directory and run - `mvn clean install`
+* Go to api directory and run - `mvn clean install`
+* Go to event-processor directory and run - `mvn clean install`
+* Go to ui-console directory and run - `mvn clean install`
+* Go to app-banking-txn-anomaly directory and run - `mvn clean install`
+
+You've built all the modules now.
+
+## STEPS TO RUN ##
+* On the same Docker Terminal shell, navigate to the project root directory (strawberry), run this first:  ``` docker-compose --file docker-compose-config-service.yml up -d ```
+* The above command will start the config service first. This must be the first step. 
+* Check this URL:  http://192.168.99.100:8888/app-banking-txn-anomaly/default/    (You should see the config JSON).
+* On the same Docker Terminal shell, navigate to the project root directory (strawberry), run this:  ``` docker-compose up -d ```
+* After 2 mins or so - http://192.168.99.100:9999/swagger-ui.html
+* You should see the swagger ui.
+* Go to docker-utils directory and run this command. ``` ./kafka-create-topic.sh card_txns_1 ```
+* Back to swagger ui - Go to the resource, POST /eventstream/{eventStreamConfigId}, set the eventStreamConfigId as card_txns_1 and the payload as the contents of card_txns_data.json and click the "try now" button.
+* Go to Kibana: http://192.168.99.100:5601/ Navigate to the strawberryopsindex and make it as default.
+* Go to http://192.168.99.100:9090/strawberry-ui-console/homePage.do - Click on the 'ops dashboard' link and you should see the kibana dashboards.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

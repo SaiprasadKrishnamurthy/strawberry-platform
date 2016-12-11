@@ -37,6 +37,7 @@ In a typical Big Data world of events processing, there are quite a lot of chall
  -   Declarative syntax - Strawberry offers "JSON" as a format to define the event processing instruction. It is also possible for the app developers to write a custom java code with their business logic and allow it to be called by the platform. Employs the famous Hollywood principle - "Don't call us, We'll call you".
  
 ## Logical High Level Architecture ##
+![Alt text](HighLevelLogicalArch.png?raw=true "High Level Logical Architecture")
 
 ## This is what happens inside the platform ##
 ![Alt text](Strawberry_Dissection.png?raw=true "This is what happens inside the platform")

@@ -1,0 +1,27 @@
+{
+  "configId": "my_event",
+  "durableNotification": true,
+  "documentIdField": "pk",
+  "indexDefinition": {
+    "properties": {
+    }
+  },
+  "persistEvent": true,
+  "enableVisualization": true,
+  "batchQueryConfig": {
+    "maxNumberOfDocs": 1000000,
+    "maxBatchSizeInBytes": 2147483647
+  },
+  "watchQueries": {
+    "channel_1": {
+    },
+    "channel_2": {
+    }
+  },
+  "sqlDDL": "CREATE TABLE IF NOT EXISTS my_event(pk VARCHAR(255) PRIMARY KEY, amount NUMBER)",
+  "watchQueriesSql": {
+    "channel_1": "SELECT * FROM my_event WHERE amount > 20"
+  },
+  "enabled": true,
+  "customProcessingHookClassName": "com.sai.app.EventReceiver"
+}

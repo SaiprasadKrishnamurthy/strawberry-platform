@@ -96,7 +96,7 @@ public class UIController {
         File zipFile = new File(temp.getAbsolutePath() + File.separator + eventName + ".zip");
         zip.setDestFile(zipFile);
         zip.setBasedir(new File(temp.getAbsolutePath() + File.separator + eventName));
-        zip.setIncludes("**/*.*");
+        zip.setIncludes("**/*");
         zip.perform();
 
         ExternalContext externalContext = FacesContext.getCurrentInstance().getExternalContext();

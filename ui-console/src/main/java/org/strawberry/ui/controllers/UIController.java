@@ -86,7 +86,7 @@ public class UIController {
         Files.createDirectories(Paths.get(temp.getName(), eventName, "src", "main", "resources"));
         Files.createDirectories(Paths.get(temp.getName(), eventName, "src", "main", "docker"));
         Files.createDirectories(Paths.get(temp.getName(), eventName, "src", "test", "resources"));
-        FileUtils.writeStringToFile(new File(temp.getAbsolutePath() + File.separator + eventName + File.separator + "src" + File.separator + "main" + File.separator + "docker"), dockerFileContents);
+        FileUtils.writeStringToFile(new File(temp.getAbsolutePath() + File.separator + eventName + File.separator + "src" + File.separator + "main" + File.separator + "docker" + File.separator + "Dockerfile"), dockerFileContents);
 
 
         Project p = new Project();

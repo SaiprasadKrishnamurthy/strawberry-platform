@@ -69,6 +69,10 @@ public class UIController {
 
         Files.createDirectories(javaSrc);
 
+        String dockerFileContents = IOUtils.toString(UIController.class.getClassLoader().getResourceAsStream("app-templates/Dockerfile"));
+        dockerFileContents = dockerFileContents.replace("__ename", eventName);
+
+
         if (StringUtils.isNotBlank(groupId)) {
             String pkg = javaSrc.toFile().getAbsolutePath() + File.separator + groupId.replace(".", File.separator);
             File pkgDir = new File(pkg);
@@ -76,11 +80,14 @@ public class UIController {
             FileUtils.writeStringToFile(new File(pkgDir.getAbsolutePath() + File.separator + "EventReceiver.java"), eventReceiverContents);
             FileUtils.writeStringToFile(new File(temp.getAbsolutePath() + File.separator + eventName + File.separator + "src" + File.separator + "main" + File.separator + "resources" + File.separator + eventName + ".json"), configTemplateJson);
             FileUtils.writeStringToFile(new File(temp.getAbsolutePath() + File.separator + eventName + File.separator + "src" + File.separator + "main" + File.separator + "resources" + File.separator + eventName + ".properties"), templateProps);
-            FileUtils.writeStringToFile(new File(temp.getAbsolutePath() + File.separator + eventName + File.separator + "pom.xml"), pomContents);
         }
+        FileUtils.writeStringToFile(new File(temp.getAbsolutePath() + File.separator + eventName + File.separator + "pom.xml"), pomContents);
 
         Files.createDirectories(Paths.get(temp.getName(), eventName, "src", "main", "resources"));
+        Files.createDirectories(Paths.get(temp.getName(), eventName, "src", "main", "docker"));
         Files.createDirectories(Paths.get(temp.getName(), eventName, "src", "test", "resources"));
+        FileUtils.writeStringToFile(new File(temp.getAbsolutePath() + File.separator + eventName + File.separator + "src" + File.separator + "main" + File.separator + "docker"), dockerFileContents);
+
 
         Project p = new Project();
         p.init();

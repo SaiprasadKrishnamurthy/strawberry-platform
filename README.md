@@ -16,11 +16,12 @@
 
 ```
 ## Strawberry Real-Time Streaming Events Processing Platform ##
-Strawberry is a platform that helps developers to easily write applications to processes streams of events coming in at a rapid pace, real time. The main objective of this platform is to keep the developer's focus out of plumbing activities and only make them focus on their business logic. 
+Strawberry is a platform that helps developers to easily write applications to process streams of events coming in at a rapid pace, real time. The main objective of this platform is to keep the developer's focus out of plumbing activities and only make them focus on their business logic. 
 In a typical Big Data world of events processing, there are quite a lot of challenges. A few main ones (in the context of what Strawberry solves), are listed here.
 
  - Choosing the right technology stack.
  - Horizontal scalability.
+ - Real time processing.
  - Ability to scale fast based on business needs.
  - Cloud friendly design.
  - Enabling a lot of business opportunities outside the platform (eg: Machine Learning, Analytics etc).

@@ -1,14 +1,9 @@
 package com.sai.strawberry.micro;
 
-import org.apache.commons.dbcp2.BasicDataSource;
-import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.ResultSetExtractor;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sai.strawberry.api.EventConfig;
 
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.util.Map;
+import java.io.FileInputStream;
 
 /**
  * Created by saipkri on 17/11/16.
@@ -16,7 +11,7 @@ import java.util.Map;
 public class Scratchpad {
     public static void mains(String[] args) throws Exception {
 
-        String sql = "CREATE TABLE IF NOT EXISTS card_txns(ID INT PRIMARY KEY, NAME VARCHAR(255))";
+        /*String sql = "CREATE TABLE IF NOT EXISTS card_txns(ID INT PRIMARY KEY, NAME VARCHAR(255))";
         BasicDataSource ds = new BasicDataSource();
         ds.setUrl("jdbc:h2:mem:card-txns;DB_CLOSE_DELAY=-1");
         ds.setDriverClassName("org.h2.Driver");
@@ -41,7 +36,10 @@ public class Scratchpad {
                 }
                 return columnCount;
             }
-        });
+        });*/
+
+        ObjectMapper m = new ObjectMapper();
+        System.out.println(m.readValue(new FileInputStream("/Users/saipkri/learning/new/strawberry/event-processor/output.json"), EventConfig.class));
 
 
     }

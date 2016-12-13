@@ -6,7 +6,7 @@ import akka.dispatch.OnFailure;
 import akka.dispatch.OnSuccess;
 import akka.pattern.Patterns;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sai.strawberry.api.EventStreamConfig;
+import com.sai.strawberry.api.EventConfig;
 import com.sai.strawberry.micro.actor.RepositoryActor;
 import com.sai.strawberry.micro.config.ActorFactory;
 import com.sai.strawberry.micro.util.CallbackFunctionLibrary;
@@ -46,17 +46,17 @@ public class ConfigResource {
 
     @ApiOperation("Gets the configs stored in the system")
     @CrossOrigin(methods = {RequestMethod.POST, RequestMethod.PUT, RequestMethod.OPTIONS, RequestMethod.GET})
-    @RequestMapping(value = "/config", method = RequestMethod.GET, produces = "application/json")
-    public DeferredResult<ResponseEntity<List<EventStreamConfig>>> configs() throws Exception {
-        DeferredResult<ResponseEntity<List<EventStreamConfig>>> deferredResult = new DeferredResult<>(5000L);
+    @RequestMapping(value = "/configs", method = RequestMethod.GET, produces = "application/json")
+    public DeferredResult<ResponseEntity<List<EventConfig>>> configs() throws Exception {
+        DeferredResult<ResponseEntity<List<EventConfig>>> deferredResult = new DeferredResult<>(5000L);
         ActorRef repositoryActor = actorFactory.newActor(RepositoryActor.class);
 
-        Future<Object> results = Patterns.ask(repositoryActor, EventStreamConfig.class, RepositoryActor.timeout_in_seconds);
+        Future<Object> results = Patterns.ask(repositoryActor, EventConfig.class, RepositoryActor.timeout_in_seconds);
         OnFailure failureCallback = CallbackFunctionLibrary.onFailure(t -> deferredResult.setErrorResult(new ResponseEntity<>(t.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR)));
 
         results.onSuccess(new OnSuccess<Object>() {
             public void onSuccess(final Object results) {
-                deferredResult.setResult(new ResponseEntity<>((List<EventStreamConfig>) results, HttpStatus.OK));
+                deferredResult.setResult(new ResponseEntity<>((List<EventConfig>) results, HttpStatus.OK));
             }
         }, actorFactory.executionContext());
 
@@ -66,7 +66,7 @@ public class ConfigResource {
 
     @ApiOperation("Gets the ops dashboard")
     @CrossOrigin(methods = {RequestMethod.POST, RequestMethod.PUT, RequestMethod.OPTIONS, RequestMethod.GET})
-    @RequestMapping(value = "/ops-dashboard", method = RequestMethod.GET, produces = "text/html")
+    @RequestMapping(value = "/ops-dashboard-embed", method = RequestMethod.GET, produces = "text/html")
     public DeferredResult<ResponseEntity<String>> dashboard() throws Exception {
         DeferredResult<ResponseEntity<String>> deferredResult = new DeferredResult<>(5000L);
         StringBuilder out = new StringBuilder();

@@ -6,7 +6,7 @@ import akka.pattern.Patterns;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Predicates;
 import com.mongodb.MongoClient;
-import com.sai.strawberry.api.EventStreamConfig;
+import com.sai.strawberry.api.EventConfig;
 import com.sai.strawberry.micro.actor.ESPercolationSetupActor;
 import com.sai.strawberry.micro.actor.KibanaEngineDashboardSetupActor;
 import com.sai.strawberry.micro.actor.RepositoryActor;
@@ -24,10 +24,12 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.Resource;
 import org.springframework.data.mongodb.MongoDbFactory;
@@ -63,7 +65,9 @@ import java.util.stream.Stream;
 /**
  * Created by saipkri on 07/09/16.
  */
-@SpringBootApplication
+@Configuration
+@EnableAutoConfiguration
+@ComponentScan
 @EnableMongoRepositories
 //@EnableEurekaClient
 @EnableSwagger2
@@ -141,7 +145,7 @@ public class EventProcessorApplication {
                 .map(resource -> {
                     try {
                         System.out.println(" ******** " + resource.getFilename());
-                        return Optional.of(jsonParser.readValue(IOUtils.toString(resource.getInputStream()), EventStreamConfig.class));
+                        return Optional.of(jsonParser.readValue(IOUtils.toString(resource.getInputStream()), EventConfig.class));
                     } catch (IOException e) {
                         LOGGER.info("Didn't load " + resource + " in config db. Doesn't appear to be a config file.");
                         return Optional.empty();

@@ -2,12 +2,12 @@ package com.sai.strawberry.micro.actor;
 
 import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
+import com.sai.strawberry.api.EventConfig;
 import com.sai.strawberry.micro.config.ActorFactory;
 import com.sai.strawberry.micro.model.EventProcessingContext;
 import com.sai.strawberry.micro.model.NotificationTuple;
 import com.sai.strawberry.micro.model.ProcessorEvent;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.util.StringUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -15,9 +15,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.*;
 
 /**
  * Created by saipkri on 08/09/16.
@@ -38,9 +36,12 @@ public class WatcherSQLDBActor extends UntypedActor {
     public void onReceive(final Object _context) throws Throwable {
         if (_context instanceof EventProcessingContext) {
             EventProcessingContext context = (EventProcessingContext) _context;
-            if (StringUtils.hasText(context.getConfig().getSqlDDL())) {
+            EventConfig config = context.getConfig();
+            if (config.getNotification() != null
+                    && config.getNotification().getSql() != null
+                    && config.getNotification().getSql().getDdl() != null) {
                 // create the table first.
-                jdbcTemplate.execute(context.getConfig().getSqlDDL().trim());
+                jdbcTemplate.execute(config.getNotification().getSql().getDdl().trim());
 
                 // insert the current row.
                 List<String> columns = (List<String>) context.getConfig().getInternal().get("sqlColNames");
@@ -58,33 +59,37 @@ public class WatcherSQLDBActor extends UntypedActor {
                 List<String> notifiedChannels = new ArrayList<>();
                 ActorRef watcherSQLDBCleanupActor = actorFactory.newActor(WatcherSQLDBCleanupActor.class);
 
-
-                // Run the watcher query now.
-                for (Map.Entry<String, String> sqlEntry : context.getConfig().getWatchQueriesSql().entrySet()) {
-                    String channelName = sqlEntry.getKey();
-                    String sql = sqlEntry.getValue();
-                    List result = jdbcTemplate.queryForList(sql);
-                    if (result != null && !result.isEmpty()) {
-                        // SEND IT TO NOTIFICATION ACTOR.
-                        ActorRef notificationActor = actorFactory.newActor(NotificationActor.class);
-                        notifiedChannels.add(channelName.trim());
-                        notificationActor.tell(new NotificationTuple(context, channelName), getSelf());
+                if (context.getConfig().getNotification() != null
+                        && context.getConfig().getNotification().getSql() != null
+                        && context.getConfig().getNotification().getSql().getNotificationChannelsAndQueries() != null
+                        && !context.getConfig().getNotification().getSql().getNotificationChannelsAndQueries().isEmpty()) {
+                    // Run the watcher query now.
+                    for (Map.Entry<String, String> sqlEntry : context.getConfig().getNotification().getSql().getNotificationChannelsAndQueries().entrySet()) {
+                        String channelName = sqlEntry.getKey();
+                        String sql = sqlEntry.getValue();
+                        List result = jdbcTemplate.queryForList(sql);
+                        if (result != null && !result.isEmpty()) {
+                            // SEND IT TO NOTIFICATION ACTOR.
+                            ActorRef notificationActor = actorFactory.newActor(NotificationActor.class);
+                            notifiedChannels.add(channelName.trim());
+                            notificationActor.tell(new NotificationTuple(context, channelName), getSelf());
+                        }
+                        // Async delete
+                        watcherSQLDBCleanupActor.tell(context, getSelf());
                     }
-                    // Async delete
-                    watcherSQLDBCleanupActor.tell(context, getSelf());
-                }
 
-                // Construct an event now.
-                // SEND IT TO OPS ACTOR.
-                ActorRef opsIndexActor = actorFactory.newActor(OpsIndexActor.class);
-                ProcessorEvent event = new ProcessorEvent();
-                event.setStreamId(context.getConfig().getConfigId());
-                event.setStartTime(context.getStartTimestamp());
-                event.setOriginatedTimestamp(format.format(new Date()));
-                event.setProcessingTimeInMillis(System.currentTimeMillis() - context.getStartTimestamp());
-                event.setNotifiedTo(notifiedChannels.toArray(new String[notifiedChannels.size()]));
-                event.setPayloadIdentifier(context.getDoc().get("__naturalId__").toString());
-                opsIndexActor.tell(event, getSelf());
+                    // Construct an event now.
+                    // SEND IT TO OPS ACTOR.
+                    ActorRef opsIndexActor = actorFactory.newActor(OpsIndexActor.class);
+                    ProcessorEvent event = new ProcessorEvent();
+                    event.setStreamId(context.getConfig().getConfigId());
+                    event.setStartTime(context.getStartTimestamp());
+                    event.setOriginatedTimestamp(format.format(new Date()));
+                    event.setProcessingTimeInMillis(System.currentTimeMillis() - context.getStartTimestamp());
+                    event.setNotifiedTo(notifiedChannels.toArray(new String[notifiedChannels.size()]));
+                    event.setPayloadIdentifier(context.getDoc().get("__naturalId__").toString());
+                    opsIndexActor.tell(event, getSelf());
+                }
             }
         }
         getSender().tell(_context, getSelf());

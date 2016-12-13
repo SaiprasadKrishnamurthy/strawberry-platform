@@ -2,7 +2,7 @@ package com.sai.strawberry.micro.actor;
 
 import akka.actor.UntypedActor;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sai.strawberry.api.EventStreamConfig;
+import com.sai.strawberry.api.EventConfig;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
@@ -28,32 +28,35 @@ public class ESPercolationSetupActor extends UntypedActor {
     public void onReceive(final Object forceRecreateEsIndex) throws Throwable {
         if (forceRecreateEsIndex instanceof List) {
             Boolean force = (Boolean) ((List) forceRecreateEsIndex).get(0);
-            EventStreamConfig config = (EventStreamConfig) ((List) forceRecreateEsIndex).get(1);
+            EventConfig config = (EventConfig) ((List) forceRecreateEsIndex).get(1);
             init(force, config);
         }
     }
 
     // Blocking API
-    public Void init(final boolean forceRecreateEsIndex, final EventStreamConfig config) throws Exception {
+    public Void init(final boolean forceRecreateEsIndex, final EventConfig config) throws Exception {
         RestTemplate restTemplate = new RestTemplate();
-        try {
-            if (forceRecreateEsIndex) {
-                try {
-                    restTemplate.delete(esUrl + "/" + config.getConfigId());
-                } catch (HttpClientErrorException ignored) {
-                }
+        if (forceRecreateEsIndex) {
+            try {
+                restTemplate.delete(esUrl + "/" + config.getConfigId());
+            } catch (HttpClientErrorException ignored) {
             }
-            if (isIndexMissing(restTemplate, config)) {
+        }
+        if (isIndexMissing(restTemplate, config)) {
 
-                // create index.
-                restTemplate.postForObject(esUrl + "/" + config.getConfigId(), "{}", Map.class, Collections.emptyMap());
+            // create index.
+            restTemplate.postForObject(esUrl + "/" + config.getConfigId(), "{}", Map.class, Collections.emptyMap());
 
-                // apply mappings.
-                if (config.getIndexDefinition() != null && !config.getIndexDefinition().isEmpty()) {
-                    restTemplate.postForObject(esUrl + "/" + config.getConfigId() + "/_mapping/" + config.getConfigId(), JSONSERIALIZER.writeValueAsString(config.getIndexDefinition()), Map.class, Collections.emptyMap());
-                }
+            // apply mappings.
+            if (config.getDataDefinitions() != null && config.getDataDefinitions().getElasticsearchIndexDefinition() != null) {
+                restTemplate.postForObject(esUrl + "/" + config.getConfigId() + "/_mapping/" + config.getConfigId(), JSONSERIALIZER.writeValueAsString(config.getDataDefinitions().getElasticsearchIndexDefinition()), Map.class, Collections.emptyMap());
+            }
 
-                Map<String, Map<String, Object>> watchQueries = config.getWatchQueries();
+            if (config.getNotification() != null
+                    && config.getNotification().getElasticsearch() != null
+                    && config.getNotification().getElasticsearch().getNotificationChannelsAndQueries() != null
+                    && !config.getNotification().getElasticsearch().getNotificationChannelsAndQueries().isEmpty()) {
+                Map<String, Map<String, Object>> watchQueries = config.getNotification().getElasticsearch().getNotificationChannelsAndQueries();
                 Map<String, Object> percolateDoc = new LinkedHashMap<>();
 
                 int id = 1;
@@ -66,14 +69,11 @@ public class ESPercolationSetupActor extends UntypedActor {
                     }
                 }
             }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            throw new RuntimeException(ex);
         }
         return null;
     }
 
-    private boolean isIndexMissing(final RestTemplate restTemplate, final EventStreamConfig config) {
+    private boolean isIndexMissing(final RestTemplate restTemplate, final EventConfig config) {
         try {
             restTemplate.headForHeaders(esUrl + "/" + config.getConfigId());
         } catch (Exception ex) {

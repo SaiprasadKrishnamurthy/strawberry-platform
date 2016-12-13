@@ -5,12 +5,13 @@
         xmlns:p="http://primefaces.org/ui">
     <p:panelMenu style="width:200px">
         <p:submenu label="Configs">
-            <p:menuitem value="View configs" url="homePage.do" icon="fa fa-eye"/>
+            <p:menuitem value="View config" url="index.do" icon="fa fa-eye"/>
         </p:submenu>
         <p:separator/>
 
         <p:submenu label="Utilities">
             <p:menuitem value="Build a new App" url="newApp.do" icon="fa fa-file"/>
+            <p:menuitem value="Ops dashboard" url="#{c.dashboard}" icon="fa fa-dashboard" target="_blank"/>
         </p:submenu>
     </p:panelMenu>
 

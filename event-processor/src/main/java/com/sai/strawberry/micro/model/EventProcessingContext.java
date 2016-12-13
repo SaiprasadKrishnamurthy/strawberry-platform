@@ -1,9 +1,7 @@
 package com.sai.strawberry.micro.model;
 
-import com.sai.strawberry.api.EventStreamConfig;
-import lombok.AllArgsConstructor;
+import com.sai.strawberry.api.EventConfig;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.util.Map;
 
@@ -13,7 +11,7 @@ import java.util.Map;
 @Data
 public class EventProcessingContext {
     private final Map doc;
-    private final EventStreamConfig config;
+    private final EventConfig config;
     private final long startTimestamp;
 
     public long timeElapsedSinceStart() {

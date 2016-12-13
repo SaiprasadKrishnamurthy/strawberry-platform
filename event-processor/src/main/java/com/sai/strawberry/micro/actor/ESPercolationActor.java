@@ -32,7 +32,10 @@ public class ESPercolationActor extends UntypedActor {
     public void onReceive(final Object message) throws Throwable {
         if (message instanceof EventProcessingContext) {
             EventProcessingContext context = (EventProcessingContext) message;
-            if (context.getConfig().getWatchQueries() != null && !context.getConfig().getWatchQueries().isEmpty()) {
+            if (context.getConfig().getNotification() != null
+                    && context.getConfig().getNotification().getElasticsearch() != null
+                    && context.getConfig().getNotification().getElasticsearch().getNotificationChannelsAndQueries() != null
+                    && !context.getConfig().getNotification().getElasticsearch().getNotificationChannelsAndQueries().isEmpty()) {
                 RestTemplate rt = new RestTemplate();
                 String topic = context.getConfig().getConfigId();
 

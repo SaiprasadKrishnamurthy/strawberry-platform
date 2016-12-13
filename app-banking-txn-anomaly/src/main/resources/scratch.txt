@@ -1,0 +1,39 @@
+DataDefinitions: {
+    elasticsearchIndexDefinition: {
+
+    },
+  Database: {
+    cassandra: {
+       entities: []
+    },
+    mongo: {
+      "batchConfig": {
+          "maxNumberOfDocs": 1000000,
+          "maxBatchSizeInBytes": 2147483647
+        },
+    }
+  }
+},
+DataTransformations: {
+    dataTransformerHookClass: ""
+},
+Notification: {
+    elasticsearch: {
+        "channel1": {
+            Query
+        },
+        "channel2": {
+            Query
+        },
+    },
+    sql: {
+        ddl: "create table "
+        "channel1": {
+
+        },
+        "channel2": {
+
+        },
+    },
+
+}

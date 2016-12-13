@@ -2,7 +2,7 @@ package com.sai.strawberry.micro.actor;
 
 import akka.actor.UntypedActor;
 import com.sai.strawberry.api.CustomProcessorHook;
-import com.sai.strawberry.api.EventStreamConfig;
+import com.sai.strawberry.api.EventConfig;
 import com.sai.strawberry.micro.model.EventProcessingContext;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
@@ -29,7 +29,7 @@ public class AppCallbackActor extends UntypedActor {
         Object _ctx = message;
         if (message instanceof EventProcessingContext) {
             EventProcessingContext context = (EventProcessingContext) message;
-            if (context.getConfig().getCustomProcessingHookClassName() != null) {
+            if (context.getConfig().getDataTransformation() != null && context.getConfig().getDataTransformation().getDataTransformerHookClass() != null) {
                 Map doc = invokeCallback(context.getConfig(), context.getDoc());
                 _ctx = new EventProcessingContext(doc, context.getConfig(), context.getStartTimestamp());
             }
@@ -37,8 +37,8 @@ public class AppCallbackActor extends UntypedActor {
         getSender().tell(_ctx, getSelf());
     }
 
-    private Map invokeCallback(final EventStreamConfig eventStreamConfig, final Map jsonIn) throws Exception {
-        Class<CustomProcessorHook> callback = (Class<CustomProcessorHook>) Class.forName(eventStreamConfig.getCustomProcessingHookClassName());
+    private Map invokeCallback(final EventConfig eventStreamConfig, final Map jsonIn) throws Exception {
+        Class<CustomProcessorHook> callback = (Class<CustomProcessorHook>) Class.forName(eventStreamConfig.getDataTransformation().getDataTransformerHookClass());
         return callback.newInstance().execute(eventStreamConfig, jsonIn, mongoTemplate, mongoTemplateBatch);
     }
 }

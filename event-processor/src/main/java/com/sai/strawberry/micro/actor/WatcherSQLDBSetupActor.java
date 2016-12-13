@@ -1,9 +1,8 @@
 package com.sai.strawberry.micro.actor;
 
 import akka.actor.UntypedActor;
-import com.sai.strawberry.api.EventStreamConfig;
+import com.sai.strawberry.api.EventConfig;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.util.StringUtils;
 
 import java.sql.ResultSetMetaData;
 import java.util.ArrayList;
@@ -25,22 +24,24 @@ public class WatcherSQLDBSetupActor extends UntypedActor {
 
     @Override
     public void onReceive(final Object _config) throws Throwable {
-        EventStreamConfig config = null;
-        if (_config instanceof EventStreamConfig) {
-            config = (EventStreamConfig) _config;
-            if (StringUtils.hasText(config.getSqlDDL().trim())) {
+        EventConfig config = null;
+        if (_config instanceof EventConfig) {
+            config = (EventConfig) _config;
+            if (config.getNotification() != null
+                    && config.getNotification().getSql() != null
+                    && config.getNotification().getSql().getDdl() != null) {
                 // create the table first.
-                jdbcTemplate.execute(config.getSqlDDL().trim());
+                jdbcTemplate.execute(config.getNotification().getSql().getDdl().trim());
                 config.setInternal(tableMetadata(jdbcTemplate, config));
             }
         }
         getSender().tell(_config, getSelf());
     }
 
-    private Map<String, Object> tableMetadata(final JdbcTemplate jdbcTemplate, final EventStreamConfig eventStreamConfig) {
+    private Map<String, Object> tableMetadata(final JdbcTemplate jdbcTemplate, final EventConfig eventStreamConfig) {
         Map<String, Object> internal = new HashMap<>();
         List<String> cols = new ArrayList<>();
-        jdbcTemplate.query("select * from "+eventStreamConfig.getConfigId().trim(), rs -> {
+        jdbcTemplate.query("select * from " + eventStreamConfig.getConfigId().trim(), rs -> {
             ResultSetMetaData rsmd = rs.getMetaData();
             int columnCount = rsmd.getColumnCount();
             for (int i = 1; i <= columnCount; i++) {

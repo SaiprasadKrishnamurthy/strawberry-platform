@@ -2,6 +2,7 @@
                 xmlns:ui="http://java.sun.com/jsf/facelets"
                 xmlns:p="http://primefaces.org/ui"
                 xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
                 template="layout.xhtml">
 
     <ui:define name="left">
@@ -14,25 +15,53 @@
         <p:spacer width="10" height="30"/>
 
         <h:form id="form">
-            <h2>Build a New App</h2>
-            <p:messages id="messages" showDetail="true" autoUpdate="true" closable="true" />
+            <h2>Scaffolding for a new APP</h2>
+            <p:messages id="messages" showDetail="true" autoUpdate="true" closable="true"/>
             <h:panelGrid columns="2">
-                <h:outputText value="Maven group id" style="font-weight: bold"/>
-                <p:inputText value="#{ui.groupId}"/>
-                <h:outputText value="Maven artifact id" style="font-weight: bold"/>
-                <p:inputText value="#{ui.artifactId}"/>
-                <h:outputText value="App version" style="font-weight: bold"/>
-                <p:inputText value="#{ui.version}"/>
-                <h:outputText value="Event name" style="font-weight: bold"/>
-                <p:inputText value="#{ui.eventName}"/>
-                <h:outputText value="App Description" style="font-weight: bold"/>
-                <p:inputTextarea rows="6" cols="33" value="#{ui.description}"/>
-                <h:outputText value="Configuration server url" style="font-weight: bold"/>
-                <p:inputText value="#{ui.configUrl}"/>
-                <p:commandButton value="Generate App Template" id="withIcon" actionListener="#{ui.newApp}" icon="ui-icon-disk"
+                <p:fieldset legend="General" style="margin-bottom:20px">
+                    <h:panelGrid columns="2">
+                        <h:outputText value="Event name" style="font-weight: bold"/>
+                        <p:inputText value="#{c.eventName}"/>
+                        <h:outputText value="App Description" style="font-weight: bold"/>
+                        <p:inputTextarea rows="6" cols="33" value="#{c.description}"/>
+                        <h:outputText value="Configuration server url" style="font-weight: bold"/>
+                        <p:inputText value="#{c.configUrl}"/>
+                    </h:panelGrid>
+                </p:fieldset>
+                <p:fieldset legend="Maven" style="margin-bottom:20px">
+                    <h:panelGrid columns="2">
+                        <h:outputText value="Maven group id" style="font-weight: bold"/>
+                        <p:inputText value="#{c.groupId}" placeholder="com.app.event.myevent"/>
+                        <h:outputText value="Maven artifact id" style="font-weight: bold"/>
+                        <p:inputText value="#{c.artifactId}"  placeholder="my-event-processor"/>
+                        <h:outputText value="App version" style="font-weight: bold"/>
+                        <p:inputText value="#{c.version}"/>
+                    </h:panelGrid>
+                </p:fieldset>
+                <p:fieldset legend="Data definition" style="margin-bottom:20px">
+                    <h:panelGrid columns="2" cellpadding="15">
+                        <h:outputText value="Database to store the events" style="font-weight: bold"/>
+                        <p:selectOneButton value="#{c.db}">
+                            <f:selectItem itemLabel="MongoDB" itemValue="mongo"/>
+                            <f:selectItem itemLabel="Cassandra" itemValue="cassandra" enabled="false"/>
+                        </p:selectOneButton>
+                        <h:outputText value="Primary key field name" style="font-weight: bold"/>
+                        <p:inputText value="#{c.pk}" />
+                    </h:panelGrid>
+                </p:fieldset>
+                <p:fieldset legend="Event Notification" style="margin-bottom:20px">
+                    <h:panelGrid columns="2" cellpadding="15">
+                        <h:outputText value="Event Notification Rules Query" style="font-weight: bold"/>
+                        <p:selectOneButton value="#{c.notificationQuery}">
+                            <f:selectItem itemLabel="Elasticsearch Query" itemValue="es"/>
+                            <f:selectItem itemLabel="SQL Query" itemValue="sql"/>
+                            <f:selectItem itemLabel="Both" itemValue="both"/>
+                        </p:selectOneButton>
+                    </h:panelGrid>
+                </p:fieldset>
+                <p:commandButton value="Generate App Template" id="withIcon" actionListener="#{c.newApp}"
+                                 icon="ui-icon-disk"
                                  ajax="false" update="messages"/>
-
-
             </h:panelGrid>
         </h:form>
     </ui:define>

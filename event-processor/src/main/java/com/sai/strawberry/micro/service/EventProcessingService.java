@@ -3,7 +3,7 @@ package com.sai.strawberry.micro.service;
 import akka.actor.ActorRef;
 import akka.pattern.Patterns;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sai.strawberry.api.EventStreamConfig;
+import com.sai.strawberry.api.EventConfig;
 import com.sai.strawberry.micro.actor.*;
 import com.sai.strawberry.micro.config.ActorFactory;
 import com.sai.strawberry.micro.model.EventProcessingContext;
@@ -29,7 +29,7 @@ public class EventProcessingService {
     public void process(final String data) {
         try {
             Map doc = MAPPER.readValue(data, Map.class);
-            EventStreamConfig eventStreamConfig = MAPPER.convertValue(doc.get("eventStreamConfig"), EventStreamConfig.class);
+            EventConfig eventStreamConfig = MAPPER.convertValue(doc.get("eventStreamConfig"), EventConfig.class);
             // Add the identifiers.
 
             Map payload = (Map) doc.get("payload");

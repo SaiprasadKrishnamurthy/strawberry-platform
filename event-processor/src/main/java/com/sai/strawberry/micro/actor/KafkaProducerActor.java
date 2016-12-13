@@ -5,7 +5,7 @@ import akka.actor.UntypedActor;
 import akka.dispatch.OnComplete;
 import akka.pattern.Patterns;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sai.strawberry.api.EventStreamConfig;
+import com.sai.strawberry.api.EventConfig;
 import com.sai.strawberry.micro.config.ActorFactory;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -38,7 +38,7 @@ public class KafkaProducerActor extends UntypedActor {
             eventStreamConfigFuture.onComplete(new OnComplete<Object>() {
                 @Override
                 public void onComplete(Throwable failure, Object success) throws Throwable {
-                    EventStreamConfig eventStreamConfig = (EventStreamConfig) success;
+                    EventConfig eventStreamConfig = (EventConfig) success;
                     if (!eventStreamConfig.isEnabled()) {
                         getSender().tell(false, getSelf());
                     } else {

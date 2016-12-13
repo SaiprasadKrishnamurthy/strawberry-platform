@@ -43,7 +43,7 @@ public class KibanaActor extends UntypedActor {
                     String endpoint = ".kibana/index-pattern/" + context.getConfig().getConfigId();
                     Map<String, String> in = new LinkedHashMap<>();
                     in.put("title", context.getConfig().getConfigId());
-                    Map<String, Map> props = (Map<String, Map>) context.getConfig().getIndexDefinition().get("properties");
+                    Map<String, Map> props = (Map<String, Map>) context.getConfig().getDataDefinitions().getElasticsearchIndexDefinition().get("properties");
                     Optional<Map.Entry<String, Map>> timestampField = props.entrySet().stream().filter(entry -> entry.getValue().containsValue("date")).findFirst();
                     if (timestampField.isPresent()) {
                         in.put("timeFieldName", timestampField.get().getKey().trim());

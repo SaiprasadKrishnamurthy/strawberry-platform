@@ -1,0 +1,30 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                template="layout.xhtml">
+
+    <ui:define name="left">
+        <ui:include src="includes/allLinksAsButtons.xhtml"/>
+    </ui:define>
+
+
+    <ui:define name="main">
+
+        <p:spacer width="10" height="30"/>
+
+        <h:form id="form">
+            <h2>Listen to Notifications</h2>
+            <h:panelGrid columns="2" cellpadding="15">
+                <p:selectManyCheckbox id="basic" value="#{c.selectedChannels}" layout="grid" columns="3">
+                    <f:selectItems value="#{c.availableChannels}" var="v" itemLabel="#{v}" itemValue="#{v}"/>
+                </p:selectManyCheckbox>
+            </h:panelGrid>
+            <p:poll interval="3" listener="#{c.notificationCheck}" update="growl" />
+            <p:growl id="growl" showDetail="true" sticky="true" />
+        </h:form>
+    </ui:define>
+</ui:composition>

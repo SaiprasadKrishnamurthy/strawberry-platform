@@ -21,6 +21,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -45,6 +46,8 @@ public class Controller {
     private String db = "mongo";
     private String pk = "id";
     private String notificationQuery = "es";
+    private List<String> availableChannels = new ArrayList<>();
+    private List<String> selectedChannels = new ArrayList<>();
 
     public Controller() throws Exception {
 
@@ -56,7 +59,6 @@ public class Controller {
         dashboard = restTemplate.getForObject(dashboardEndpoint, String.class);
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
 
-        config = objectMapper.readValue(new File("/Users/saipkri/learning/new/strawberry/ui-console/output.json"), EventConfig.class);
         root = new DefaultTreeNode("+ " + config.getConfigId(), null);
         root.setExpanded(true);
 
@@ -86,6 +88,7 @@ public class Controller {
                 config.getNotification().getElasticsearch().getNotificationChannelsAndQueries().entrySet().forEach(entry -> {
                     TreeNode node200 = node("+ " + entry.getKey(), node20);
                     try {
+                        availableChannels.add(entry.getKey());
                         node(objectMapper.writeValueAsString(entry.getValue()), node200);
                     } catch (JsonProcessingException e) {
                         e.printStackTrace();
@@ -98,6 +101,7 @@ public class Controller {
                     TreeNode node200 = node("+ " + entry.getKey(), node20);
                     try {
                         node(objectMapper.writeValueAsString(entry.getValue()), node200);
+                        availableChannels.add(entry.getKey());
                     } catch (JsonProcessingException e) {
                         e.printStackTrace();
                     }
@@ -171,6 +175,15 @@ public class Controller {
         FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Info", "App template ready!"));
 
         FacesContext.getCurrentInstance().responseComplete();
+    }
+
+    public void listen() {
+        System.out.println("Selected Channels: "+selectedChannels);
+    }
+
+    public void notificationCheck() {
+        FacesContext context = FacesContext.getCurrentInstance();
+        context.addMessage(null, new FacesMessage("Successful",  "Your message: " + selectedChannels) );
     }
 
     public TreeNode getRoot() {

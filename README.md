@@ -40,6 +40,16 @@ In a typical Big Data world of events processing, there are quite a lot of chall
 ## Logical High Level Architecture ##
 ![Alt text](HighLevelLogicalArch.png?raw=true "High Level Logical Architecture")
 
+## Layers in Strawberry ##
+![Alt text](Layered.png?raw=true "Layers")
+
+* *Data ingestion layer* - Highly scalable, fault tolerant layer that collects the events from different sources asynchronously. This is typically a Kafka Topic or Rest API for easier integration. 
+
+* *Data transformation/enrichment layer* - Often, the raw event data needs enriching or transformation based on business logic.
+
+* *Notifications layer* - The enriched data passes through the notifications engine in which various rules are applied to the data. If the data matches the rules, then the notification is sent else the notificication is not sent.
+
+
 ## Technology Stack ##
 ![Alt text](tech_stack_1.png?raw=true "Tech stack")
 

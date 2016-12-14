@@ -58,6 +58,7 @@
     "dataTransformerHookClass": "com.sai.app.banking.txn.CardTxnDataTransformer"
   },
   "notification": {
+    "webhooksUrl": "https://hooks.slack.com/services/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",
     "sql": {
       "ddl": "CREATE TABLE IF NOT EXISTS card_txns_1(transactionId VARCHAR(255) PRIMARY KEY, amount NUMBER)",
       "notificationChannelsAndQueries": {

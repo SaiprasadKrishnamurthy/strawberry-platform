@@ -7,6 +7,7 @@ import lombok.Data;
  */
 @Data
 public class Notification {
+    private String webhooksUrl;
     private ElasticsearchNotification elasticsearch;
     private SqlNotification sql;
 }

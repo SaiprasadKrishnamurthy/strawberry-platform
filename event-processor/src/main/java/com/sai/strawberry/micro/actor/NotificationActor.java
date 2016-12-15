@@ -49,7 +49,6 @@ public class NotificationActor extends UntypedActor {
             List<String> webhooksUrl = webhooksUrl(((NotificationTuple) message).getNotificationChannel(), ((NotificationTuple) message).getContext().getConfig().getNotification());
             if (!webhooksUrl.isEmpty()) {
                 for (String wh : webhooksUrl) {
-                    System.out.println(" --> "+wh);
                     String[] whTokens = wh.split("##");
                     String url = whTokens[0];
                     String channel = whTokens[1];

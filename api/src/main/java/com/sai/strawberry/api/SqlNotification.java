@@ -2,6 +2,7 @@ package com.sai.strawberry.api;
 
 import lombok.Data;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -10,5 +11,6 @@ import java.util.Map;
 @Data
 public class SqlNotification {
     private String ddl;
-    private Map<String, String> notificationChannelsAndQueries;
+    private List<NotificationConfig> notificationConfigs;
+
 }

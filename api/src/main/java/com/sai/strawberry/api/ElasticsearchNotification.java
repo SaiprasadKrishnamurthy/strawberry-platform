@@ -2,6 +2,7 @@ package com.sai.strawberry.api;
 
 import lombok.Data;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -9,5 +10,5 @@ import java.util.Map;
  */
 @Data
 public class ElasticsearchNotification {
-    private Map<String, Map<String, Object>> notificationChannelsAndQueries;
+    private List<NotificationConfig> notificationConfigs;
 }

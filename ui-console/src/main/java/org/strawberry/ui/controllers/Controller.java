@@ -85,11 +85,11 @@ public class Controller {
         if (config.getNotification() != null) {
             if (config.getNotification().getElasticsearch() != null) {
                 TreeNode node20 = node("+ Elasticsearch", node2);
-                config.getNotification().getElasticsearch().getNotificationChannelsAndQueries().entrySet().forEach(entry -> {
-                    TreeNode node200 = node("+ " + entry.getKey(), node20);
+                config.getNotification().getElasticsearch().getNotificationConfigs().forEach(entry -> {
+                    TreeNode node200 = node("+ " + entry.getChannelName(), node20);
                     try {
-                        availableChannels.add(entry.getKey());
-                        node(objectMapper.writeValueAsString(entry.getValue()), node200);
+                        availableChannels.add(entry.getChannelName());
+                        node(objectMapper.writeValueAsString(entry.getElasticsearchQuery()), node200);
                     } catch (JsonProcessingException e) {
                         e.printStackTrace();
                     }
@@ -97,11 +97,11 @@ public class Controller {
             }
             if (config.getNotification().getSql() != null) {
                 TreeNode node20 = node("+ SQL", node2);
-                config.getNotification().getSql().getNotificationChannelsAndQueries().entrySet().forEach(entry -> {
-                    TreeNode node200 = node("+ " + entry.getKey(), node20);
+                config.getNotification().getSql().getNotificationConfigs().forEach(entry -> {
+                    TreeNode node200 = node("+ " + entry.getChannelName(), node20);
                     try {
-                        node(objectMapper.writeValueAsString(entry.getValue()), node200);
-                        availableChannels.add(entry.getKey());
+                        node(objectMapper.writeValueAsString(entry.getSqlQuery()), node200);
+                        availableChannels.add(entry.getChannelName());
                     } catch (JsonProcessingException e) {
                         e.printStackTrace();
                     }

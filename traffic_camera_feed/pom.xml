@@ -4,11 +4,11 @@
         xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.sai.strawberry</groupId>
-    <artifactId>app-banking-txn-anomaly</artifactId>
+    <groupId>com.demo.traffic</groupId>
+    <artifactId>camera-stream</artifactId>
     <packaging>jar</packaging>
-    <version>1.0-SNAPSHOT</version>
-    <name>App built to run on strawberry platform for a banking use case</name>
+    <version>1.0.0-SNAPSHOT</version>
+    <name>This app processes the events traffic camera feed</name>
     <properties>
         <event.processor.version>1.0-SNAPSHOT</event.processor.version>
     </properties>
@@ -30,15 +30,10 @@
             <artifactId>event-processor</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
-        <dependency>
-            <groupId>com.offbytwo.jenkins</groupId>
-            <artifactId>jenkins-client</artifactId>
-            <version>0.3.6</version>
-        </dependency>
     </dependencies>
 
     <build>
-        <finalName>app-banking-txn-anomaly</finalName>
+        <finalName>traffic_camera_feed</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

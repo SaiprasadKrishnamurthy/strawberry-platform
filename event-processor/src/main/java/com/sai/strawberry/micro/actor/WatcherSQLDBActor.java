@@ -3,6 +3,7 @@ package com.sai.strawberry.micro.actor;
 import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
 import com.sai.strawberry.api.EventConfig;
+import com.sai.strawberry.api.NotificationConfig;
 import com.sai.strawberry.micro.config.ActorFactory;
 import com.sai.strawberry.micro.model.EventProcessingContext;
 import com.sai.strawberry.micro.model.NotificationTuple;
@@ -61,12 +62,12 @@ public class WatcherSQLDBActor extends UntypedActor {
 
                 if (context.getConfig().getNotification() != null
                         && context.getConfig().getNotification().getSql() != null
-                        && context.getConfig().getNotification().getSql().getNotificationChannelsAndQueries() != null
-                        && !context.getConfig().getNotification().getSql().getNotificationChannelsAndQueries().isEmpty()) {
+                        && context.getConfig().getNotification().getSql().getNotificationConfigs() != null
+                        && !context.getConfig().getNotification().getSql().getNotificationConfigs().isEmpty()) {
                     // Run the watcher query now.
-                    for (Map.Entry<String, String> sqlEntry : context.getConfig().getNotification().getSql().getNotificationChannelsAndQueries().entrySet()) {
-                        String channelName = sqlEntry.getKey();
-                        String sql = sqlEntry.getValue();
+                    for (NotificationConfig sqlEntry : context.getConfig().getNotification().getSql().getNotificationConfigs()) {
+                        String channelName = sqlEntry.getChannelName();
+                        String sql = sqlEntry.getSqlQuery();
                         List result = jdbcTemplate.queryForList(sql);
                         if (result != null && !result.isEmpty()) {
                             // SEND IT TO NOTIFICATION ACTOR.

@@ -3,6 +3,7 @@ package com.sai.strawberry.micro.actor;
 import akka.actor.UntypedActor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sai.strawberry.api.EventConfig;
+import com.sai.strawberry.api.NotificationConfig;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
@@ -54,16 +55,16 @@ public class ESPercolationSetupActor extends UntypedActor {
 
             if (config.getNotification() != null
                     && config.getNotification().getElasticsearch() != null
-                    && config.getNotification().getElasticsearch().getNotificationChannelsAndQueries() != null
-                    && !config.getNotification().getElasticsearch().getNotificationChannelsAndQueries().isEmpty()) {
-                Map<String, Map<String, Object>> watchQueries = config.getNotification().getElasticsearch().getNotificationChannelsAndQueries();
+                    && config.getNotification().getElasticsearch().getNotificationConfigs() != null
+                    && !config.getNotification().getElasticsearch().getNotificationConfigs().isEmpty()) {
+                List<NotificationConfig> watchQueries = config.getNotification().getElasticsearch().getNotificationConfigs();
                 Map<String, Object> percolateDoc = new LinkedHashMap<>();
 
                 int id = 1;
                 if (watchQueries != null) {
-                    for (Map.Entry<String, Map<String, Object>> entry : watchQueries.entrySet()) {
-                        percolateDoc.put("query", entry.getValue());
-                        percolateDoc.put("queryName", entry.getKey());
+                    for (NotificationConfig entry : watchQueries) {
+                        percolateDoc.put("query", entry.getElasticsearchQuery());
+                        percolateDoc.put("queryName", entry.getChannelName());
                         restTemplate.postForObject(esUrl + "/" + config.getConfigId() + "/.percolator/" + id, JSONSERIALIZER.writeValueAsString(percolateDoc).replace("##", "."), Object.class, Collections.emptyMap());
                         id++;
                     }

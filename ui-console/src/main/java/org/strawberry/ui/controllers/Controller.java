@@ -139,6 +139,9 @@ public class Controller {
         String dockerFileContents = IOUtils.toString(Controller.class.getClassLoader().getResourceAsStream("app-templates/Dockerfile"));
         dockerFileContents = dockerFileContents.replace("__ename", eventName);
 
+        String bootstrapProps = IOUtils.toString(Controller.class.getClassLoader().getResourceAsStream("app-templates/bootstrap.properties"));
+        bootstrapProps = bootstrapProps.replace("__eid", eventName).replace("__configUrl", configsEndpoint);
+
 
         if (StringUtils.isNotBlank(groupId)) {
             String pkg = javaSrc.toFile().getAbsolutePath() + File.separator + groupId.replace(".", File.separator);
@@ -147,6 +150,7 @@ public class Controller {
             FileUtils.writeStringToFile(new File(pkgDir.getAbsolutePath() + File.separator + "EventTransformer.java"), eventReceiverContents);
             FileUtils.writeStringToFile(new File(temp.getAbsolutePath() + File.separator + eventName + File.separator + "src" + File.separator + "main" + File.separator + "resources" + File.separator + eventName + ".json"), configTemplateJson);
             FileUtils.writeStringToFile(new File(temp.getAbsolutePath() + File.separator + eventName + File.separator + "src" + File.separator + "main" + File.separator + "resources" + File.separator + eventName + ".properties"), templateProps);
+            FileUtils.writeStringToFile(new File(temp.getAbsolutePath() + File.separator + eventName + File.separator + "src" + File.separator + "main" + File.separator + "resources" + File.separator + "bootstrap.properties"), bootstrapProps);
         }
         FileUtils.writeStringToFile(new File(temp.getAbsolutePath() + File.separator + eventName + File.separator + "pom.xml"), pomContents);
 

@@ -47,27 +47,27 @@ public class ESPercolationSetupActor extends UntypedActor {
 
             // create index.
             restTemplate.postForObject(esUrl + "/" + config.getConfigId(), "{}", Map.class, Collections.emptyMap());
+        }
 
-            // apply mappings.
-            if (config.getDataDefinitions() != null && config.getDataDefinitions().getElasticsearchIndexDefinition() != null) {
-                restTemplate.postForObject(esUrl + "/" + config.getConfigId() + "/_mapping/" + config.getConfigId(), JSONSERIALIZER.writeValueAsString(config.getDataDefinitions().getElasticsearchIndexDefinition()), Map.class, Collections.emptyMap());
-            }
+        // apply mappings.
+        if (config.getDataDefinitions() != null && config.getDataDefinitions().getElasticsearchIndexDefinition() != null) {
+            restTemplate.postForObject(esUrl + "/" + config.getConfigId() + "/_mapping/" + config.getConfigId(), JSONSERIALIZER.writeValueAsString(config.getDataDefinitions().getElasticsearchIndexDefinition()), Map.class, Collections.emptyMap());
+        }
 
-            if (config.getNotification() != null
-                    && config.getNotification().getElasticsearch() != null
-                    && config.getNotification().getElasticsearch().getNotificationConfigs() != null
-                    && !config.getNotification().getElasticsearch().getNotificationConfigs().isEmpty()) {
-                List<NotificationConfig> watchQueries = config.getNotification().getElasticsearch().getNotificationConfigs();
-                Map<String, Object> percolateDoc = new LinkedHashMap<>();
+        if (config.getNotification() != null
+                && config.getNotification().getElasticsearch() != null
+                && config.getNotification().getElasticsearch().getNotificationConfigs() != null
+                && !config.getNotification().getElasticsearch().getNotificationConfigs().isEmpty()) {
+            List<NotificationConfig> watchQueries = config.getNotification().getElasticsearch().getNotificationConfigs();
+            Map<String, Object> percolateDoc = new LinkedHashMap<>();
 
-                int id = 1;
-                if (watchQueries != null) {
-                    for (NotificationConfig entry : watchQueries) {
-                        percolateDoc.put("query", entry.getElasticsearchQuery());
-                        percolateDoc.put("queryName", entry.getChannelName());
-                        restTemplate.postForObject(esUrl + "/" + config.getConfigId() + "/.percolator/" + id, JSONSERIALIZER.writeValueAsString(percolateDoc).replace("##", "."), Object.class, Collections.emptyMap());
-                        id++;
-                    }
+            int id = 1;
+            if (watchQueries != null) {
+                for (NotificationConfig entry : watchQueries) {
+                    percolateDoc.put("query", entry.getElasticsearchQuery());
+                    percolateDoc.put("queryName", entry.getChannelName());
+                    restTemplate.postForObject(esUrl + "/" + config.getConfigId() + "/.percolator/" + id, JSONSERIALIZER.writeValueAsString(percolateDoc).replace("##", "."), Object.class, Collections.emptyMap());
+                    id++;
                 }
             }
         }

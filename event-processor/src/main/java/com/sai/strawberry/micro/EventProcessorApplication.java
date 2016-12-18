@@ -3,14 +3,14 @@ package com.sai.strawberry.micro;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.pattern.Patterns;
+import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.HostDistance;
+import com.datastax.driver.core.PoolingOptions;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Predicates;
 import com.mongodb.MongoClient;
 import com.sai.strawberry.api.EventConfig;
-import com.sai.strawberry.micro.actor.ESPercolationSetupActor;
-import com.sai.strawberry.micro.actor.KibanaEngineDashboardSetupActor;
-import com.sai.strawberry.micro.actor.RepositoryActor;
-import com.sai.strawberry.micro.actor.WatcherSQLDBSetupActor;
+import com.sai.strawberry.micro.actor.*;
 import com.sai.strawberry.micro.config.ActorFactory;
 import io.searchbox.client.JestClient;
 import io.searchbox.client.JestClientFactory;
@@ -115,6 +115,12 @@ public class EventProcessorApplication {
     @Value("${sqlDbConnectionPoolSize ?: 30}")
     private int sqlDbConnectionPoolSize;
 
+    @Value("${cassandraSeedNodes ?: 127.0.0.1}")
+    private String cassandraSeedNodes;
+
+    @Value("${cassandraConnectionPoolSize ?: 30}")
+    private int cassandraConnectionPoolSize;
+
 
     private ActorSystem actorSystem() {
         return ActorSystem.create("StrawberryActorSystem");
@@ -127,7 +133,7 @@ public class EventProcessorApplication {
 
     @Bean
     public ActorFactory actorFactory(final MongoTemplate mongoTemplate) throws Exception {
-        ActorFactory actorFactory = new ActorFactory(actorSystem(), kafkaProducer(), jestClient(), mongoTemplate, mongoForBatch(), esIndexBatchSize, esUrl, kibanaOpsIndexName.toLowerCase().trim(), jdbcTemplate());
+        ActorFactory actorFactory = new ActorFactory(actorSystem(), kafkaProducer(), jestClient(), mongoTemplate, mongoForBatch(), esIndexBatchSize, esUrl, kibanaOpsIndexName.toLowerCase().trim(), jdbcTemplate(), cassandraCluster());
         initConfigs(actorFactory);
         return actorFactory;
     }
@@ -136,6 +142,16 @@ public class EventProcessorApplication {
     public MongoTemplate mongoTemplate(final MongoDbFactory mongoDbFactory, final MappingMongoConverter mappingMongoConverter) {
         MongoTemplate mongoTemplate = new MongoTemplate(mongoDbFactory, mappingMongoConverter);
         return mongoTemplate;
+    }
+
+    @Bean
+    public Cluster cassandraCluster() {
+        PoolingOptions poolingOptions = new PoolingOptions();
+        poolingOptions.setMaxRequestsPerConnection(HostDistance.LOCAL, cassandraConnectionPoolSize);
+        Cluster.Builder builder = Cluster.builder();
+        Stream.of(cassandraSeedNodes.split(",")).forEach(builder::addContactPoint);
+        builder.withPoolingOptions(poolingOptions);
+        return builder.build();
     }
 
     private void initConfigs(final ActorFactory actorFactory) {
@@ -169,6 +185,9 @@ public class EventProcessorApplication {
                     ActorRef opsDashboard = actorFactory.newActor(KibanaEngineDashboardSetupActor.class);
                     opsDashboard.tell(kibanaOpsIndexName, ActorRef.noSender());
 
+                    // Cassandra setup.
+                    ActorRef cassandraSetup = actorFactory.newActor(CassandraDDLSetupActor.class);
+                    cassandraSetup.tell(config, ActorRef.noSender());
                 });
     }
 

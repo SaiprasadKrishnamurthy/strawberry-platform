@@ -1,32 +1,36 @@
 package com.sai.strawberry.micro.service;
 
 import akka.actor.ActorRef;
+import akka.actor.UntypedActor;
 import akka.pattern.Patterns;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sai.strawberry.api.EventConfig;
 import com.sai.strawberry.micro.actor.*;
 import com.sai.strawberry.micro.config.ActorFactory;
 import com.sai.strawberry.micro.model.EventProcessingContext;
-import org.springframework.stereotype.Component;
 import scala.concurrent.Future;
 
-import javax.inject.Inject;
 import java.util.Map;
 
 /**
  * Created by saipkri on 28/11/16.
  */
-@Component
-public class EventProcessingService {
+public class EventProcessingService extends UntypedActor {
     private final ActorFactory actorFactory;
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    @Inject
     public EventProcessingService(final ActorFactory actorFactory) {
         this.actorFactory = actorFactory;
     }
 
-    public void process(final String data) {
+    @Override
+    public void onReceive(Object message) throws Throwable {
+        if (message instanceof String) {
+            process((String) message);
+        }
+    }
+
+    private void process(final String data) {
         try {
             Map doc = MAPPER.readValue(data, Map.class);
             EventConfig eventStreamConfig = MAPPER.convertValue(doc.get("eventStreamConfig"), EventConfig.class);

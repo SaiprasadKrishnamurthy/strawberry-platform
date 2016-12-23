@@ -107,6 +107,14 @@ public class Controller {
                     }
                 });
             }
+            if (config.getNotification().getSpel() != null) {
+                TreeNode node20 = node("+ SPEL", node2);
+                config.getNotification().getSpel().getNotificationConfigs().forEach(entry -> {
+                    TreeNode node200 = node("+ " + entry.getChannelName(), node20);
+                        node(entry.getSpelExpressionQuery(), node200);
+                        availableChannels.add(entry.getChannelName());
+                });
+            }
 
         }
 

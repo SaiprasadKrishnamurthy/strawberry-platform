@@ -146,12 +146,17 @@ public class EventProcessorApplication {
 
     @Bean
     public Cluster cassandraCluster() {
-        PoolingOptions poolingOptions = new PoolingOptions();
-        poolingOptions.setMaxRequestsPerConnection(HostDistance.LOCAL, cassandraConnectionPoolSize);
-        Cluster.Builder builder = Cluster.builder();
-        Stream.of(cassandraSeedNodes.split(",")).forEach(builder::addContactPoint);
-        builder.withPoolingOptions(poolingOptions);
-        return builder.build();
+        try {
+            PoolingOptions poolingOptions = new PoolingOptions();
+            poolingOptions.setMaxRequestsPerConnection(HostDistance.LOCAL, cassandraConnectionPoolSize);
+            Cluster.Builder builder = Cluster.builder();
+            Stream.of(cassandraSeedNodes.split(",")).forEach(builder::addContactPoint);
+            builder.withPoolingOptions(poolingOptions);
+            return builder.build();
+        } catch (Exception ex) {
+            LOGGER.warn(ex);
+        }
+        return null;
     }
 
     private void initConfigs(final ActorFactory actorFactory) {

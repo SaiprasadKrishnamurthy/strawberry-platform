@@ -1,9 +1,16 @@
 package com.sai.strawberry.micro;
 
+import com.datastax.driver.core.Cluster;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sai.strawberry.api.EventConfig;
+import org.springframework.expression.Expression;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 
 import java.io.FileInputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by saipkri on 17/11/16.
@@ -38,8 +45,28 @@ public class Scratchpad {
             }
         });*/
 
-        ObjectMapper m = new ObjectMapper();
+        /*ObjectMapper m = new ObjectMapper();
         System.out.println(m.readValue(new FileInputStream("/Users/saipkri/learning/new/strawberry/event-processor/output.json"), EventConfig.class));
+*/
+        /*ExpressionParser expressionParser = new SpelExpressionParser();
+        Map<String, Object> salaryByWorkers = new HashMap<>();
+        salaryByWorkers.put("Name", "Sai");
+        salaryByWorkers.put("Age", 18);
+        salaryByWorkers.put("Location", "Chennai");
+        salaryByWorkers.put("Status", "Offline");
+        StandardEvaluationContext context = new StandardEvaluationContext(salaryByWorkers);
+        Expression expression = expressionParser.parseExpression("['Name'].equals('Sai') && ['Age'] < 20");
+        String result = (String) expression.getValue(context, String.class);
+        System.out.println(result);*/
+
+        Cluster.Builder builder = Cluster.builder();
+        builder.addContactPoint("ss");
+        builder.build();
+
+
+
+
+
 
 
     }

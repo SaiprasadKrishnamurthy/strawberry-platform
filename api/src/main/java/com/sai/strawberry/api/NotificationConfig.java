@@ -12,6 +12,7 @@ public class NotificationConfig {
     private String channelName;
     private Map<String, Object> elasticsearchQuery;
     private String sqlQuery;
+    private String spelExpressionQuery;
     private String webhookUrl;
     private String webHookDataTransformerClass;
 }

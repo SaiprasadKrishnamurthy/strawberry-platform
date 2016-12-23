@@ -10,4 +10,5 @@ public class Notification {
     private String webhooksUrl;
     private ElasticsearchNotification elasticsearch;
     private SqlNotification sql;
+    private SpelNotification spel;
 }

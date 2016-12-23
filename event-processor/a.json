@@ -1,0 +1,22 @@
+{
+  "query": {
+    "filtered": {
+      "query": {
+        "match_all": {}
+      },
+      "filter": {
+        "bool": {
+          "must": [
+            {
+              "range": {
+                "diskSpace": {
+                  "lte": 1000000000
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

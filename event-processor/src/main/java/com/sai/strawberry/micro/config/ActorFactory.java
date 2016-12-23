@@ -47,6 +47,7 @@ public class ActorFactory {
         actors.put(EventProcessingService.class.getName(), actorSystem.actorOf(Props.create(EventProcessingService.class, this).withRouter(new RoundRobinPool(Runtime.getRuntime().availableProcessors()))));
         actors.put(WebhooksNotificationActor.class.getName(), actorSystem.actorOf(Props.create(WebhooksNotificationActor.class).withRouter(new RoundRobinPool(Runtime.getRuntime().availableProcessors()))));
         actors.put(CassandraDDLSetupActor.class.getName(), actorSystem.actorOf(Props.create(CassandraDDLSetupActor.class, cassandraCluster).withRouter(new RoundRobinPool(Runtime.getRuntime().availableProcessors()))));
+        actors.put(SpelExpressionEvaluationActor.class.getName(), actorSystem.actorOf(Props.create(SpelExpressionEvaluationActor.class, this).withRouter(new RoundRobinPool(Runtime.getRuntime().availableProcessors()))));
     }
 
     public <T> ActorRef newActor(final Class<T> actorType) {

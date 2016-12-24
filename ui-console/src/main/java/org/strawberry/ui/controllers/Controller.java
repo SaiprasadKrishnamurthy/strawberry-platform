@@ -13,6 +13,7 @@ import org.apache.tools.ant.taskdefs.Zip;
 import org.primefaces.model.DefaultTreeNode;
 import org.primefaces.model.TreeNode;
 import org.springframework.web.client.RestTemplate;
+import org.strawberry.ui.controllers.org.strawberry.ui.util.QueryUtil;
 
 import javax.faces.application.FacesMessage;
 import javax.faces.context.ExternalContext;
@@ -48,6 +49,9 @@ public class Controller {
     private String notificationQuery = "es";
     private List<String> availableChannels = new ArrayList<>();
     private List<String> selectedChannels = new ArrayList<>();
+    private String infixQuery = "A='B' and C='D'";
+    private String esQuery = "";
+
 
     public Controller() throws Exception {
 
@@ -117,6 +121,10 @@ public class Controller {
             }
 
         }
+
+    }
+
+    public void completeArea(String query) {
 
     }
 
@@ -198,6 +206,13 @@ public class Controller {
         context.addMessage(null, new FacesMessage("Successful",  "Your message: " + selectedChannels) );
     }
 
+    public void onQuery() throws Exception{
+        System.out.println(infixQuery);
+        System.out.println(" ------------ ");
+        if(infixQuery.trim().length() > 0) {
+            esQuery = QueryUtil.esQuery(infixQuery.trim());
+        }
+    }
     public TreeNode getRoot() {
         return root;
     }

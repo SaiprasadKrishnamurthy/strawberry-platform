@@ -17,14 +17,22 @@
         <p:spacer width="10" height="30"/>
 
         <h:form id="form">
-            <h2>Listen to Notifications</h2>
-            <h:panelGrid columns="2" cellpadding="15">
-                <p:selectManyCheckbox id="basic" value="#{c.selectedChannels}" layout="grid" columns="3">
-                    <f:selectItems value="#{c.availableChannels}" var="v" itemLabel="#{v}" itemValue="#{v}"/>
-                </p:selectManyCheckbox>
-            </h:panelGrid>
-            <p:poll interval="3" listener="#{c.notificationCheck}" update="growl" />
-            <p:growl id="growl" showDetail="true" sticky="true" />
+            <h2>Query Builder</h2>
+            <p:inputTextarea rows="10" cols="50" value="#{c.infixQuery}">
+                <p:ajax event="keyup" update=":#{p:component('esQuery')}" listener="#{c.onQuery}"/>
+            </p:inputTextarea>
+
+            <p:tabView>
+                <p:tab title="Elasticsearch Query">
+                    <pe:codeMirror id="esQuery"
+                                   theme="rubyblue" value="#{c.esQuery}"
+                                   lineNumbers="true" style="height: auto" readonly="true"/>
+                </p:tab>
+                <p:tab title="SpEL Query">
+                    Not implemented yet..
+                </p:tab>
+            </p:tabView>
+
         </h:form>
     </ui:define>
 </ui:composition>

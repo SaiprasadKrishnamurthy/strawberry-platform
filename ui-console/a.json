@@ -1,0 +1,42 @@
+{
+  "query": {
+    "filtered": {
+      "query": {
+        "match_all": {}
+      },
+      "filter": {
+        "bool": {
+          "should": [
+            {
+              "term": {
+                "cardNumber": "3"
+              }
+            },
+            {
+              "term": {
+                "amount": "20"
+              }
+            }
+          ],
+          "must": [
+            {
+              "term": {
+                "bank": "HSBC"
+              }
+            }
+          ],
+          "must": [
+            {
+              "range": {
+                "amount": {
+                  "lte": 87.0
+                }
+              }
+            }
+          ],
+          "must": []
+        }
+      }
+    }
+  }
+}

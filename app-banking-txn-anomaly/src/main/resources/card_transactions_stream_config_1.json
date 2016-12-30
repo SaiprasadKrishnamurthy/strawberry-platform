@@ -3,6 +3,7 @@
   "documentIdField": "transactionId",
   "persistEvent": true,
   "enableVisualization": true,
+  "searchletClass": "com.sai.app.banking.txn.searchlets.TransactionSearchlet",
   "enabled": true,
   "dataDefinitions": {
     "elasticsearchIndexDefinition": {

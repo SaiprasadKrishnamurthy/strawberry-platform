@@ -8,8 +8,10 @@ import com.datastax.driver.core.HostDistance;
 import com.datastax.driver.core.PoolingOptions;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Predicates;
+import com.google.common.reflect.ClassPath;
 import com.mongodb.MongoClient;
 import com.sai.strawberry.api.EventConfig;
+import com.sai.strawberry.api.Searchlet;
 import com.sai.strawberry.micro.actor.*;
 import com.sai.strawberry.micro.config.ActorFactory;
 import com.sai.strawberry.micro.eventlistener.EventListener;
@@ -18,6 +20,7 @@ import io.searchbox.client.JestClientFactory;
 import io.searchbox.client.config.HttpClientConfig;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -56,10 +59,12 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 /**
@@ -127,7 +132,6 @@ public class EventProcessorApplication {
     @Value("${kafkaConsumerGroup}")
     private String kafkaConsumerGroup;
 
-
     private ActorSystem actorSystem() {
         return ActorSystem.create("StrawberryActorSystem");
     }
@@ -186,6 +190,8 @@ public class EventProcessorApplication {
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .forEach(config -> {
+                    EventConfig eventConfig = (EventConfig) config;
+
                     ActorRef watcherSqlDbSetupActor = actorFactory.newActor(WatcherSQLDBSetupActor.class);
                     Future<Object> watcherSqlDbSetupActorFuture = Patterns.ask(watcherSqlDbSetupActor, config, WatcherSQLDBSetupActor.timeout_in_seconds);
                     ActorRef repoActor = actorFactory.newActor(RepositoryActor.class);
@@ -198,12 +204,18 @@ public class EventProcessorApplication {
                     esPercolationSetupActor.tell(Arrays.asList(cleanupExistingIndex, config), ActorRef.noSender());
 
                     // Setup the ops dashboard.
-                    ActorRef opsDashboard = actorFactory.newActor(KibanaEngineDashboardSetupActor.class);
-                    opsDashboard.tell(kibanaOpsIndexName, ActorRef.noSender());
+                    if (eventConfig.isEnableVisualization()) {
+                        ActorRef opsDashboard = actorFactory.newActor(KibanaEngineDashboardSetupActor.class);
+                        opsDashboard.tell(kibanaOpsIndexName, ActorRef.noSender());
+                    }
 
                     // Cassandra setup.
-                    ActorRef cassandraSetup = actorFactory.newActor(CassandraDDLSetupActor.class);
-                    cassandraSetup.tell(config, ActorRef.noSender());
+                    if (eventConfig.getDataDefinitions() != null
+                            && eventConfig.getDataDefinitions().getDatabase() != null
+                            && eventConfig.getDataDefinitions().getDatabase().getCassandra() != null) {
+                        ActorRef cassandraSetup = actorFactory.newActor(CassandraDDLSetupActor.class);
+                        cassandraSetup.tell(config, ActorRef.noSender());
+                    }
                 });
     }
 

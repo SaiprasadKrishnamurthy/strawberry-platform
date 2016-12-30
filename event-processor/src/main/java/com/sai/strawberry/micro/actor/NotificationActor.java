@@ -35,7 +35,10 @@ public class NotificationActor extends UntypedActor {
     @Override
     public void onReceive(final Object message) throws Throwable {
         if (message instanceof NotificationTuple) {
-            sender.send(new ProducerRecord<>(((NotificationTuple) message).getNotificationChannel(), MAPPER.writeValueAsString(((NotificationTuple) message).getContext().getDoc())));
+            NotificationTuple notificationTuple = (NotificationTuple) message;
+            if (notificationTuple.getContext().shouldNotifyToKafkaTopic(notificationTuple.getNotificationChannel())) {
+                sender.send(new ProducerRecord<>(notificationTuple.getNotificationChannel(), MAPPER.writeValueAsString(notificationTuple.getContext().getDoc())));
+            }
 
             // Additionally publish to any webhooks.
             ActorRef webhooksActor = actorFactory.newActor(WebhooksNotificationActor.class);

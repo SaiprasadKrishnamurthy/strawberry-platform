@@ -22,7 +22,9 @@ public class MongoPersistenceActor extends UntypedActor {
     public void onReceive(final Object message) throws Throwable {
         if (message instanceof EventProcessingContext) {
             EventProcessingContext context = (EventProcessingContext) message;
-            if (context.getConfig().isPersistEvent()) {
+            if (context.getConfig().isPersistEvent()
+                    && context.getConfig().getDataDefinitions().getDatabase() != null
+                    && context.getConfig().getDataDefinitions().getDatabase().getMongo() != null) {
                 mongoTemplate.save(context.getDoc(), context.getConfig().getConfigId());
             }
         }

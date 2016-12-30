@@ -5,11 +5,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sai.strawberry.api.CustomProcessorHook;
 import com.sai.strawberry.api.EventConfig;
 import com.sai.strawberry.api.MongoBackedDataTransformer;
+import org.apache.commons.lang3.ClassPathUtils;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.util.ResourceUtils;
 
 import java.io.FileInputStream;
 import java.util.HashMap;
@@ -66,6 +69,11 @@ public class Scratchpad {
 
 
         foo(new String[]{"a", "b"});
+
+        EventConfig config = new EventConfig();
+        ObjectMapper m = new ObjectMapper();
+        System.out.println(m.writeValueAsString(config));
+
 
 
 

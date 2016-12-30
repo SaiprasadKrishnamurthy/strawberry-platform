@@ -23,7 +23,8 @@ public class MongoBatchsetupActor extends UntypedActor {
     public void onReceive(final Object message) throws Throwable {
         if (message instanceof EventProcessingContext) {
             EventProcessingContext context = (EventProcessingContext) message;
-            if (context.getConfig().getDataDefinitions() != null
+            if (context.getConfig().isPersistEvent() &&
+                    context.getConfig().getDataDefinitions() != null
                     && context.getConfig().getDataDefinitions().getDatabase() != null
                     && context.getConfig().getDataDefinitions().getDatabase().getMongo() != null
                     && context.getConfig().getDataDefinitions().getDatabase().getMongo().getMaxBatchSizeInBytes() > 0) {

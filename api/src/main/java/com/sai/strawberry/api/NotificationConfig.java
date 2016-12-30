@@ -10,6 +10,7 @@ import java.util.Map;
 @Data
 public class NotificationConfig {
     private String channelName;
+    private boolean durable; // to send the notification to a kafka topic or not.
     private Map<String, Object> elasticsearchQuery;
     private String sqlQuery;
     private String spelExpressionQuery;

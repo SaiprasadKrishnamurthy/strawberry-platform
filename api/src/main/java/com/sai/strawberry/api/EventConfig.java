@@ -18,4 +18,5 @@ public class EventConfig {
     private DataTransformation dataTransformation;
     private Notification notification;
     private Map<String, Object> internal;
+    private String searchletClass;
 }

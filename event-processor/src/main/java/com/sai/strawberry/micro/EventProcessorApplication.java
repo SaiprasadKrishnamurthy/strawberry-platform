@@ -12,6 +12,7 @@ import com.mongodb.MongoClient;
 import com.sai.strawberry.api.EventConfig;
 import com.sai.strawberry.micro.actor.*;
 import com.sai.strawberry.micro.config.ActorFactory;
+import com.sai.strawberry.micro.eventlistener.EventListener;
 import io.searchbox.client.JestClient;
 import io.searchbox.client.JestClientFactory;
 import io.searchbox.client.config.HttpClientConfig;
@@ -40,11 +41,10 @@ import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.kafka.annotation.EnableKafka;
-import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
-import org.springframework.kafka.config.KafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
+import org.springframework.kafka.listener.config.ContainerProperties;
 import scala.concurrent.Future;
 import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.PathSelectors;
@@ -121,6 +121,12 @@ public class EventProcessorApplication {
     @Value("${cassandraConnectionPoolSize ?: 30}")
     private int cassandraConnectionPoolSize;
 
+    @Value("${kafkaInputTopics}")
+    private String kafkaInputTopics;
+
+    @Value("${kafkaConsumerGroup}")
+    private String kafkaConsumerGroup;
+
 
     private ActorSystem actorSystem() {
         return ActorSystem.create("StrawberryActorSystem");
@@ -157,6 +163,11 @@ public class EventProcessorApplication {
             LOGGER.warn(ex);
         }
         return null;
+    }
+
+    @Bean
+    public EventListener eventListener(final ActorFactory actorFactory) {
+        return new EventListener(actorFactory);
     }
 
     private void initConfigs(final ActorFactory actorFactory) {
@@ -265,12 +276,12 @@ public class EventProcessorApplication {
     }
 
     @Bean
-    public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, String>> kafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(consumerFactory());
-        factory.setConcurrency(Runtime.getRuntime().availableProcessors());
-        factory.getContainerProperties().setPollTimeout(3000);
-        return factory;
+    public ConcurrentMessageListenerContainer<String, String> kafkaListenerContainer(final EventListener eventListener) {
+        ContainerProperties props = new ContainerProperties(kafkaInputTopics.split(","));
+        props.setMessageListener(eventListener);
+        ConcurrentMessageListenerContainer<String, String> container = new ConcurrentMessageListenerContainer<>(consumerFactory(), props);
+        container.setConcurrency(Runtime.getRuntime().availableProcessors());
+        return container;
     }
 
     @Bean
@@ -287,7 +298,7 @@ public class EventProcessorApplication {
         propsMap.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "15000");
         propsMap.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         propsMap.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        propsMap.put(ConsumerConfig.GROUP_ID_CONFIG, "group1");
+        propsMap.put(ConsumerConfig.GROUP_ID_CONFIG, kafkaConsumerGroup);
         propsMap.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         return propsMap;
     }

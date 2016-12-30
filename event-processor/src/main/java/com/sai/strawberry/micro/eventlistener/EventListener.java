@@ -4,7 +4,7 @@ import akka.actor.ActorRef;
 import com.sai.strawberry.micro.config.ActorFactory;
 import com.sai.strawberry.micro.service.EventProcessingService;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.listener.MessageListener;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
@@ -13,7 +13,7 @@ import javax.inject.Inject;
  * Created by saipkri on 28/11/16.
  */
 @Component
-public class EventListener {
+public class EventListener implements MessageListener<String, String> {
 
     private final ActorFactory actorFactory;
 
@@ -22,9 +22,9 @@ public class EventListener {
         this.actorFactory = actorFactory;
     }
 
-    @KafkaListener(id = "id01", topics = "${kafkaInputTopic}", group = "${kafkaConsumerGroup}")
-    public void listen(final ConsumerRecord<String, String> record) {
+    @Override
+    public void onMessage(final ConsumerRecord<String, String> consumerRecord) {
         // Async one way processing.
-        actorFactory.newActor(EventProcessingService.class).tell(record.value(), ActorRef.noSender());
+        actorFactory.newActor(EventProcessingService.class).tell(consumerRecord.value(), ActorRef.noSender());
     }
 }

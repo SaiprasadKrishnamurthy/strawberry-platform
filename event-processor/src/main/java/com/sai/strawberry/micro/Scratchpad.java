@@ -2,7 +2,10 @@ package com.sai.strawberry.micro;
 
 import com.datastax.driver.core.Cluster;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sai.strawberry.api.CustomProcessorHook;
 import com.sai.strawberry.api.EventConfig;
+import com.sai.strawberry.api.MongoBackedDataTransformer;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -59,16 +62,19 @@ public class Scratchpad {
         String result = (String) expression.getValue(context, String.class);
         System.out.println(result);*/
 
-        Cluster.Builder builder = Cluster.builder();
-        builder.addContactPoint("ss");
-        builder.build();
+        System.out.println(CustomProcessorHook.class.isAssignableFrom(MongoBackedDataTransformer.class));
+
+
+        foo(new String[]{"a", "b"});
 
 
 
 
 
+    }
 
-
+    static void foo(String...args) {
+        System.out.println(args.length);
     }
 
 }

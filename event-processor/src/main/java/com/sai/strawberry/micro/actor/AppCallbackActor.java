@@ -48,7 +48,7 @@ public class AppCallbackActor extends UntypedActor {
 
     private Map invokeCallback(final EventConfig eventStreamConfig, final Map jsonIn) throws Exception {
         Class<?> aClass = Class.forName(eventStreamConfig.getDataTransformation().getDataTransformerHookClass());
-        if (aClass.isAssignableFrom(CustomProcessorHook.class)) {
+        if (CustomProcessorHook.class.isAssignableFrom(aClass)) {
             Class<CustomProcessorHook> callback = (Class<CustomProcessorHook>) aClass;
             return callback.newInstance().execute(eventStreamConfig, jsonIn, mongoTemplate, mongoTemplateBatch);
         } else {

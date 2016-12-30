@@ -3,10 +3,11 @@ package com.sai.app.banking.txn.searchlets;
 import com.sai.app.banking.txn.TransactionSearchCriteria;
 import com.sai.strawberry.api.EventConfig;
 import com.sai.strawberry.api.Searchlet;
+import org.elasticsearch.common.xcontent.XContentBuilder;
 
-/**
- * Created by saipkri on 30/12/16.
- */
+import java.io.IOException;
+import java.io.UncheckedIOException;
+
 public class TransactionSearchlet extends Searchlet<TransactionSearchCriteria> {
 
     public TransactionSearchlet(final EventConfig eventConfig) {
@@ -14,8 +15,17 @@ public class TransactionSearchlet extends Searchlet<TransactionSearchCriteria> {
     }
 
     @Override
-    public String toElasticsearchQuery(TransactionSearchCriteria transactionSearchCriteria) {
-        return null;
+    public Class<TransactionSearchCriteria> searchCriteriaClass() {
+        return TransactionSearchCriteria.class;
+    }
+
+    @Override
+    public String toElasticsearchQuery(final TransactionSearchCriteria transactionSearchCriteria, final XContentBuilder queryBuilder) {
+        try {
+            return  queryBuilder.startObject().endObject().string();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     @Override

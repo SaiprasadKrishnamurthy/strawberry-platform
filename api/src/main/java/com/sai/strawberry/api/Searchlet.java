@@ -1,7 +1,9 @@
 package com.sai.strawberry.api;
 
+import org.elasticsearch.common.xcontent.XContentBuilder;
+
 public abstract class Searchlet<T> {
-    public abstract String toElasticsearchQuery(T criteria);
+    public abstract String toElasticsearchQuery(T criteria, XContentBuilder queryBuilder);
 
     public abstract T newSearchCriteria();
 
@@ -14,4 +16,6 @@ public abstract class Searchlet<T> {
     public String eventConfigId() {
         return this.eventConfig.getConfigId();
     }
+
+    public abstract Class<T> searchCriteriaClass();
 }

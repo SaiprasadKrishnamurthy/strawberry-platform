@@ -27,12 +27,13 @@ public class CassandraDDLSetupActor extends UntypedActor {
     @Override
     public void onReceive(final Object _config) throws Throwable {
         EventConfig config = null;
+
         if (_config instanceof EventConfig) {
             config = (EventConfig) _config;
             try (Session session = cassandraCluster.connect()) {
                 if(config.getDataDefinitions().getDatabase() != null && config.getDataDefinitions().getDatabase().getCassandra() != null) {
                     config.getDataDefinitions().getDatabase().getCassandra().getCassandraDDLs().stream()
-                            .forEach(session::executeAsync);
+                            .forEach(session::execute);
                 }
             }
         }

@@ -5,6 +5,7 @@ import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.routing.RoundRobinPool;
 import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.Session;
 import com.sai.strawberry.micro.actor.*;
 import com.sai.strawberry.micro.service.EventProcessingService;
 import io.searchbox.client.JestClient;
@@ -26,7 +27,7 @@ public class ActorFactory {
     private final ActorSystem actorSystem;
 
 
-    public ActorFactory(final ActorSystem actorSystem, final KafkaProducer<String, String> kafkaTemplate, final JestClient esFacade, final MongoTemplate mongoTemplate, final MongoTemplate batchMongoTemplate, final int esIndexBatchSize, final String esUrl, final String opsIndexName, final JdbcTemplate jdbcTemplate, final Cluster cassandraCluster) {
+    public ActorFactory(final ActorSystem actorSystem, final KafkaProducer<String, String> kafkaTemplate, final JestClient esFacade, final MongoTemplate mongoTemplate, final MongoTemplate batchMongoTemplate, final int esIndexBatchSize, final String esUrl, final String opsIndexName, final JdbcTemplate jdbcTemplate, final Cluster cassandraCluster, Session cassandraSession) {
         this.actorSystem = actorSystem;
         // Create the actor pool.
         actors.put(NotificationActor.class.getName(), actorSystem.actorOf(Props.create(NotificationActor.class, kafkaTemplate, this).withRouter(new RoundRobinPool(Runtime.getRuntime().availableProcessors()))));
@@ -37,7 +38,7 @@ public class ActorFactory {
         actors.put(KibanaActor.class.getName(), actorSystem.actorOf(Props.create(KibanaActor.class, esUrl).withRouter(new RoundRobinPool(Runtime.getRuntime().availableProcessors()))));
         actors.put(KafkaProducerActor.class.getName(), actorSystem.actorOf(Props.create(KafkaProducerActor.class, kafkaTemplate, this).withRouter(new RoundRobinPool(Runtime.getRuntime().availableProcessors()))));
         actors.put(RepositoryActor.class.getName(), actorSystem.actorOf(Props.create(RepositoryActor.class, mongoTemplate, this).withRouter(new RoundRobinPool(Runtime.getRuntime().availableProcessors()))));
-        actors.put(AppCallbackActor.class.getName(), actorSystem.actorOf(Props.create(AppCallbackActor.class, mongoTemplate, batchMongoTemplate, cassandraCluster).withRouter(new RoundRobinPool(Runtime.getRuntime().availableProcessors()))));
+        actors.put(AppCallbackActor.class.getName(), actorSystem.actorOf(Props.create(AppCallbackActor.class, mongoTemplate, batchMongoTemplate, cassandraSession).withRouter(new RoundRobinPool(Runtime.getRuntime().availableProcessors()))));
         actors.put(ESPercolationSetupActor.class.getName(), actorSystem.actorOf(Props.create(ESPercolationSetupActor.class, esUrl).withRouter(new RoundRobinPool(Runtime.getRuntime().availableProcessors()))));
         actors.put(KibanaEngineDashboardSetupActor.class.getName(), actorSystem.actorOf(Props.create(KibanaEngineDashboardSetupActor.class, esUrl).withRouter(new RoundRobinPool(Runtime.getRuntime().availableProcessors()))));
         actors.put(OpsIndexActor.class.getName(), actorSystem.actorOf(Props.create(OpsIndexActor.class, esFacade, esIndexBatchSize, opsIndexName).withRouter(new RoundRobinPool(Runtime.getRuntime().availableProcessors()))));

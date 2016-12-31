@@ -1,10 +1,8 @@
 package com.sai.strawberry.micro.actor;
 
 import akka.actor.UntypedActor;
-import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.mapping.MappingManager;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sai.strawberry.api.CassandraBackedDataTransformer;
 import com.sai.strawberry.api.CustomProcessorHook;
 import com.sai.strawberry.api.EventConfig;
@@ -22,13 +20,13 @@ public class AppCallbackActor extends UntypedActor {
 
     private final MongoTemplate mongoTemplate;
     private final MongoTemplate mongoTemplateBatch;
-    private Cluster cassandraCluster;
+    private final Session cassandraSession;
 
 
-    public AppCallbackActor(final MongoTemplate mongoTemplate, final MongoTemplate mongoTemplateBatch, final Cluster cassandraCluster) {
+    public AppCallbackActor(final MongoTemplate mongoTemplate, final MongoTemplate mongoTemplateBatch, final Session cassandraSession) {
         this.mongoTemplate = mongoTemplate;
         this.mongoTemplateBatch = mongoTemplateBatch;
-        this.cassandraCluster = cassandraCluster;
+        this.cassandraSession = cassandraSession;
     }
 
 
@@ -52,14 +50,9 @@ public class AppCallbackActor extends UntypedActor {
             Class<CustomProcessorHook> callback = (Class<CustomProcessorHook>) aClass;
             return callback.newInstance().execute(eventStreamConfig, jsonIn, mongoTemplate, mongoTemplateBatch);
         } else {
-            try (Session session = cassandraCluster.newSession()) {
-                MappingManager mappingManager = new MappingManager(session);
-                Class<CassandraBackedDataTransformer> callback = (Class<CassandraBackedDataTransformer>) aClass;
-                CassandraBackedDataTransformer<Object> cassandraBackedDataTransformer = (CassandraBackedDataTransformer<Object>) aClass.newInstance();
-                ObjectMapper mapper = new ObjectMapper();
-                Object entity = mapper.convertValue(jsonIn, Class.forName(eventStreamConfig.getDataDefinitions().getDatabase().getCassandra().getEntityClassName()));
-                return cassandraBackedDataTransformer.process(session, mappingManager, eventStreamConfig, entity, jsonIn);
-            }
+            MappingManager mappingManager = new MappingManager(cassandraSession);
+            CassandraBackedDataTransformer cassandraBackedDataTransformer = (CassandraBackedDataTransformer) aClass.newInstance();
+            return cassandraBackedDataTransformer.process(cassandraSession, mappingManager, eventStreamConfig, jsonIn);
         }
     }
 }

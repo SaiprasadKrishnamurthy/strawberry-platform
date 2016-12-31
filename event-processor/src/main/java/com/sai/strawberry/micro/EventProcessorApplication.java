@@ -6,12 +6,11 @@ import akka.pattern.Patterns;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.HostDistance;
 import com.datastax.driver.core.PoolingOptions;
+import com.datastax.driver.core.Session;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Predicates;
-import com.google.common.reflect.ClassPath;
 import com.mongodb.MongoClient;
 import com.sai.strawberry.api.EventConfig;
-import com.sai.strawberry.api.Searchlet;
 import com.sai.strawberry.micro.actor.*;
 import com.sai.strawberry.micro.config.ActorFactory;
 import com.sai.strawberry.micro.eventlistener.EventListener;
@@ -20,7 +19,6 @@ import io.searchbox.client.JestClientFactory;
 import io.searchbox.client.config.HttpClientConfig;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -59,13 +57,10 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import javax.inject.Inject;
 import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
 import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * Created by saipkri on 07/09/16.
@@ -123,14 +118,15 @@ public class EventProcessorApplication {
     @Value("${cassandraSeedNodes ?: 127.0.0.1}")
     private String cassandraSeedNodes;
 
-    @Value("${cassandraConnectionPoolSize ?: 30}")
+    @Value("${cassandraConnectionPoolSize ?: 10}")
     private int cassandraConnectionPoolSize;
-
-    @Value("${kafkaInputTopics}")
-    private String kafkaInputTopics;
 
     @Value("${kafkaConsumerGroup}")
     private String kafkaConsumerGroup;
+
+    private Session cassandraSession;
+
+    private Set<String> configIds = new HashSet<>();
 
     private ActorSystem actorSystem() {
         return ActorSystem.create("StrawberryActorSystem");
@@ -143,7 +139,7 @@ public class EventProcessorApplication {
 
     @Bean
     public ActorFactory actorFactory(final MongoTemplate mongoTemplate) throws Exception {
-        ActorFactory actorFactory = new ActorFactory(actorSystem(), kafkaProducer(), jestClient(), mongoTemplate, mongoForBatch(), esIndexBatchSize, esUrl, kibanaOpsIndexName.toLowerCase().trim(), jdbcTemplate(), cassandraCluster());
+        ActorFactory actorFactory = new ActorFactory(actorSystem(), kafkaProducer(), jestClient(), mongoTemplate, mongoForBatch(), esIndexBatchSize, esUrl, kibanaOpsIndexName.toLowerCase().trim(), jdbcTemplate(), cassandraCluster(), cassandraSession);
         initConfigs(actorFactory);
         return actorFactory;
     }
@@ -154,19 +150,23 @@ public class EventProcessorApplication {
         return mongoTemplate;
     }
 
-    @Bean
+    @Bean(destroyMethod = "close")
     public Cluster cassandraCluster() {
         try {
             PoolingOptions poolingOptions = new PoolingOptions();
             poolingOptions.setMaxRequestsPerConnection(HostDistance.LOCAL, cassandraConnectionPoolSize);
             Cluster.Builder builder = Cluster.builder();
-            Stream.of(cassandraSeedNodes.split(",")).forEach(builder::addContactPoint);
-            builder.withPoolingOptions(poolingOptions);
-            return builder.build();
+            Cluster cluster = builder.addContactPoints(Stream.of(cassandraSeedNodes)
+                    .map(ip -> ip.trim())
+                    .collect(toList())
+                    .toArray(new String[cassandraSeedNodes.split(",").length]))
+                    .withPoolingOptions(poolingOptions)
+                    .build();
+            cassandraSession = cluster.connect();
+            return cluster;
         } catch (Exception ex) {
-            LOGGER.warn(ex);
+            throw new RuntimeException(ex);
         }
-        return null;
     }
 
     @Bean
@@ -191,6 +191,7 @@ public class EventProcessorApplication {
                 .map(Optional::get)
                 .forEach(config -> {
                     EventConfig eventConfig = (EventConfig) config;
+                    configIds.add(eventConfig.getConfigId().trim());
 
                     ActorRef watcherSqlDbSetupActor = actorFactory.newActor(WatcherSQLDBSetupActor.class);
                     Future<Object> watcherSqlDbSetupActorFuture = Patterns.ask(watcherSqlDbSetupActor, config, WatcherSQLDBSetupActor.timeout_in_seconds);
@@ -289,7 +290,8 @@ public class EventProcessorApplication {
 
     @Bean
     public ConcurrentMessageListenerContainer<String, String> kafkaListenerContainer(final EventListener eventListener) {
-        ContainerProperties props = new ContainerProperties(kafkaInputTopics.split(","));
+        System.out.println(" Config ids: " + configIds);
+        ContainerProperties props = new ContainerProperties(configIds.toArray(new String[configIds.size()]));
         props.setMessageListener(eventListener);
         ConcurrentMessageListenerContainer<String, String> container = new ConcurrentMessageListenerContainer<>(consumerFactory(), props);
         container.setConcurrency(Runtime.getRuntime().availableProcessors());

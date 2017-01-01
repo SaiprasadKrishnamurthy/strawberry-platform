@@ -5,8 +5,6 @@ import com.datastax.driver.mapping.annotations.PartitionKey;
 import com.datastax.driver.mapping.annotations.Table;
 import lombok.Data;
 
-import java.util.UUID;
-
 @Table(keyspace = "card_txns_2", name = "txns_by_bank_date",
         readConsistency = "QUORUM",
         writeConsistency = "QUORUM",

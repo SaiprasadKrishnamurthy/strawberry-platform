@@ -1,11 +1,18 @@
 package com.sai.strawberry.api;
 
+import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 
 public abstract class Searchlet<T> {
     public abstract String toElasticsearchQuery(T criteria, XContentBuilder queryBuilder);
 
-    public abstract T newSearchCriteria();
+    public T newSearchCriteria() {
+        try {
+            return searchCriteriaClass().newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     private final EventConfig eventConfig;
 
@@ -17,5 +24,11 @@ public abstract class Searchlet<T> {
         return this.eventConfig.getConfigId();
     }
 
-    public abstract Class<T> searchCriteriaClass();
+    public Class<T> searchCriteriaClass() {
+        try {
+            return (Class<T>) Class.forName(StringUtils.substringBetween(this.getClass().getGenericSuperclass().toString(), "<", ">"));
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

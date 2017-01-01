@@ -15,21 +15,15 @@ public class TransactionSearchlet extends Searchlet<TransactionSearchCriteria> {
     }
 
     @Override
-    public Class<TransactionSearchCriteria> searchCriteriaClass() {
-        return TransactionSearchCriteria.class;
-    }
-
-    @Override
     public String toElasticsearchQuery(final TransactionSearchCriteria transactionSearchCriteria, final XContentBuilder queryBuilder) {
         try {
-            return  queryBuilder.startObject().endObject().string();
+            return queryBuilder.startObject()
+                    .field("from", 0)
+                    .field("size", 50)
+                    .endObject()
+                    .string();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-    }
-
-    @Override
-    public TransactionSearchCriteria newSearchCriteria() {
-        return new TransactionSearchCriteria();
     }
 }

@@ -30,6 +30,7 @@ public class ESIndexActor extends UntypedActor {
 
     @Override
     public void onReceive(final Object message) throws Throwable {
+
         if (message instanceof EventProcessingContext) {
             EventProcessingContext context = (EventProcessingContext) message;
             payloadsTobeIndexedToEs.add(context.getDoc());

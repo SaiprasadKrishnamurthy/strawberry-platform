@@ -67,7 +67,8 @@
         {
           "channelName": "transaction_amount_anomaly",
           "webhookUrl": "https://hooks.slack.com/services/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",
-          "sqlQuery": "SELECT * FROM card_txns_2 WHERE amount > 20"
+          "sqlQuery": "SELECT * FROM card_txns_2 WHERE amount > 20",
+          "webHookDataTransformerClass": "com.sai.app.banking.txn.TransactionAmountAnomalyWebHookTransformer"
         }
       ]
     },

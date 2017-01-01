@@ -43,19 +43,15 @@ public class WatcherSQLDBActor extends UntypedActor {
                     && config.getNotification().getSql().getDdl() != null) {
                 // create the table first.
                 jdbcTemplate.execute(config.getNotification().getSql().getDdl().trim());
-
-                // insert the current row.
-                List<String> columns = (List<String>) context.getConfig().getInternal().get("sqlColNames");
-                String tableName = context.getConfig().getInternal().get("tableName").toString();
-                String colNames = " (" + columns.stream().collect(joining(",")) + ") ";
-                String colValuesPlaceHolders = " (" + columns.stream().map(str -> "?").collect(joining(",")) + ") ";
-                String insertSql = "INSERT INTO " + tableName + colNames + "VALUES" + colValuesPlaceHolders;
-                Map _doc = context.getDoc();
-                Map doc = (Map) _doc.keySet()
-                        .stream()
-                        .collect(toMap(key -> key.toString().toUpperCase(), key -> _doc.get(key)));
-                List<Object> params = columns.stream().map(col -> doc.get(col.toUpperCase())).collect(toList());
-                jdbcTemplate.update(insertSql, params.toArray(new Object[params.size()]));
+                try {
+                    insertRow(context);
+                } catch (Exception ex) {
+                    if (ex.getMessage().toLowerCase().contains("primary key")) {
+                        // if record with same primary key comes again (in very quick succession), then replace the record.
+                        deleteRow(context);
+                        insertRow(context);
+                    }
+                }
 
                 List<String> notifiedChannels = new ArrayList<>();
                 ActorRef watcherSQLDBCleanupActor = actorFactory.newActor(WatcherSQLDBCleanupActor.class);
@@ -94,5 +90,31 @@ public class WatcherSQLDBActor extends UntypedActor {
             }
         }
         getSender().tell(_context, getSelf());
+    }
+
+    private void insertRow(final EventProcessingContext context) {
+        // insert the current row.
+        List<String> columns = (List<String>) context.getConfig().getInternal().get("sqlColNames");
+        String tableName = context.getConfig().getInternal().get("tableName").toString();
+        String colNames = " (" + columns.stream().collect(joining(",")) + ") ";
+        String colValuesPlaceHolders = " (" + columns.stream().map(str -> "?").collect(joining(",")) + ") ";
+        String insertSql = "INSERT INTO " + tableName + colNames + "VALUES" + colValuesPlaceHolders;
+        Map _doc = context.getDoc();
+        Map doc = (Map) _doc.keySet()
+                .stream()
+                .collect(toMap(key -> key.toString().toUpperCase(), key -> _doc.get(key)));
+        List<Object> params = columns.stream().map(col -> doc.get(col.toUpperCase())).collect(toList());
+        jdbcTemplate.update(insertSql, params.toArray(new Object[params.size()]));
+    }
+
+
+    private void deleteRow(final EventProcessingContext context) {
+        // insert the current row.
+        List<String> columns = (List<String>) context.getConfig().getInternal().get("sqlColNames");
+        String tableName = context.getConfig().getInternal().get("tableName").toString();
+        Object primaryKeyValue = context.getDoc().get(context.getConfig().getDocumentIdField());
+        String primaryKeyCol = context.getConfig().getDocumentIdField().toUpperCase();
+        String deleteSql = "DELETE " + tableName + " WHERE " + primaryKeyCol + "= ?";
+        jdbcTemplate.update(deleteSql, primaryKeyValue);
     }
 }

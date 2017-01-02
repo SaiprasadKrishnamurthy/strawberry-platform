@@ -47,7 +47,7 @@ public class SearchletResource {
         this.esUrl = esUrl;
     }
 
-    @ApiOperation("Gets the list of searchlet info")
+    @ApiOperation("Gets the searchlet info for a config id")
     @CrossOrigin(methods = {RequestMethod.POST, RequestMethod.PUT, RequestMethod.OPTIONS, RequestMethod.GET})
     @RequestMapping(value = "/searchlet/{eventStreamConfigId}", method = RequestMethod.GET, produces = "application/json")
     public DeferredResult<ResponseEntity<?>> searchlet(@PathVariable("eventStreamConfigId") final String eventStreamConfigId) throws Exception {

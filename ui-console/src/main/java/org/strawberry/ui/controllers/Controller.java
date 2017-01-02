@@ -34,16 +34,16 @@ public class Controller {
 
     private TreeNode root;
     private EventConfig config;
-    private static final String configsEndpoint = "http://192.168.99.100:9999/configs";
+    private static final String configsEndpoint = "http://localhost:9999/configs";
     private final RestTemplate restTemplate = new RestTemplate();
     private String dashboard;
-    private static final String dashboardEndpoint = "http://192.168.99.100:9999/ops-dashboard-link";
+    private static final String dashboardEndpoint = "http://localhost:9999/ops-dashboard-link";
     private String groupId;
     private String artifactId;
     private String version = "1.0.0-SNAPSHOT";
     private String eventName = "my_event";
     private String description = "This app processes the events " + eventName;
-    private String configUrl = "http://192.168.99.100:8888";
+    private String configUrl = "http://localhost:8888";
     private String db = "mongo";
     private String pk = "id";
     private String notificationQuery = "es";

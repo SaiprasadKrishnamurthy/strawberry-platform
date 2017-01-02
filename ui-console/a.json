@@ -9,32 +9,24 @@
           "should": [
             {
               "term": {
-                "cardNumber": "3"
+                "name": "MyName"
               }
             },
             {
               "term": {
-                "amount": "20"
-              }
-            }
-          ],
-          "must": [
-            {
-              "term": {
-                "bank": "HSBC"
+                "status": "OFFLINE"
               }
             }
           ],
           "must": [
             {
               "range": {
-                "amount": {
-                  "lte": 87.0
+                "failureCount": {
+                  "gt": 0.0
                 }
               }
             }
-          ],
-          "must": []
+          ]
         }
       }
     }

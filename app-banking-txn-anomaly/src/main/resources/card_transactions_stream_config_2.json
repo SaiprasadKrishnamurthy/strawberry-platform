@@ -1,5 +1,5 @@
 {
-  "configId": "card_txns_2",
+    "configId": "card_txns_2",
   "documentIdField": "transactionId",
   "persistEvent": true,
   "enableVisualization": true,

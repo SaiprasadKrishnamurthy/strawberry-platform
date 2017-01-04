@@ -7,6 +7,7 @@ import lombok.Data;
  */
 @Data
 public class MongoDatabase {
+    private boolean upsertMode;
     private long maxNumberOfDocsBatch;
     private long maxBatchSizeInBytes;
 

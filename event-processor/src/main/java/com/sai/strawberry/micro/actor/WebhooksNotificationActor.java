@@ -53,7 +53,8 @@ public class WebhooksNotificationActor extends UntypedActor {
                         output = MAPPER.writeValueAsString(((NotificationTuple) message).getContext().getDoc());
                     }
 
-                    webhookPayload.put("text", "*" + channel + "*\n" + output);
+                    webhookPayload.put("text", "* Notification for event: " + ((NotificationTuple) message).getContext().getConfig().getConfigId() + "*\n" + output);
+                    webhookPayload.put("icon_emoji", ":strawberry:");
                     MultiValueMap<String, String> map = new LinkedMultiValueMap<String, String>();
                     map.add("payload", MAPPER.writeValueAsString(webhookPayload));
                     restTemplate.postForObject(url, map, String.class);
@@ -79,6 +80,12 @@ public class WebhooksNotificationActor extends UntypedActor {
         }
         if (notification.getSql() != null) {
             wh.addAll(notification.getSql().getNotificationConfigs().stream()
+                    .filter(n -> n.getChannelName().equals(notificationChannel))
+                    .map(n -> n.getWebhookUrl() + "##" + n.getChannelName() + "##" + n.getWebHookDataTransformerClass())
+                    .collect(toList()));
+        }
+        if (notification.getSpel() != null) {
+            wh.addAll(notification.getSpel().getNotificationConfigs().stream()
                     .filter(n -> n.getChannelName().equals(notificationChannel))
                     .map(n -> n.getWebhookUrl() + "##" + n.getChannelName() + "##" + n.getWebHookDataTransformerClass())
                     .collect(toList()));

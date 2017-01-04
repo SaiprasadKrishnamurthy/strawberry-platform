@@ -11,10 +11,7 @@ import com.sai.strawberry.micro.model.ProcessorEvent;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.util.stream.Collectors.*;
 
@@ -31,6 +28,7 @@ public class WatcherSQLDBActor extends UntypedActor {
     public WatcherSQLDBActor(final JdbcTemplate jdbcTemplate, final ActorFactory actorFactory) {
         this.jdbcTemplate = jdbcTemplate;
         this.actorFactory = actorFactory;
+        format.setTimeZone(TimeZone.getTimeZone("GMT"));
     }
 
     @Override

@@ -26,6 +26,7 @@ public class ESPercolationActor extends UntypedActor {
     public ESPercolationActor(final String esUrl, final ActorFactory actorFactory) {
         this.esUrl = esUrl;
         this.actorFactory = actorFactory;
+        format.setTimeZone(TimeZone.getTimeZone("GMT"));
     }
 
     @Override

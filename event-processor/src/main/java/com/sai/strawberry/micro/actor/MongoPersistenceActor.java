@@ -3,6 +3,8 @@ package com.sai.strawberry.micro.actor;
 import akka.actor.UntypedActor;
 import com.sai.strawberry.micro.model.EventProcessingContext;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 
 /**
  * Created by saipkri on 08/09/16.
@@ -25,7 +27,15 @@ public class MongoPersistenceActor extends UntypedActor {
             if (context.getConfig().isPersistEvent()
                     && context.getConfig().getDataDefinitions().getDatabase() != null
                     && context.getConfig().getDataDefinitions().getDatabase().getMongo() != null) {
-                mongoTemplate.save(context.getDoc(), context.getConfig().getConfigId());
+                if (!context.getConfig().getDataDefinitions().getDatabase().getMongo().isUpsertMode()) {
+                    mongoTemplate.save(context.getDoc(), context.getConfig().getConfigId());
+                } else {
+                    String uniqueIdField = context.getConfig().getDocumentIdField();
+                    Query query = new Query();
+                    query.addCriteria(Criteria.where(uniqueIdField.trim()).is(context.getDoc().get(uniqueIdField.trim())));
+                    mongoTemplate.remove(query, context.getConfig().getConfigId());
+                    mongoTemplate.save(context.getDoc(), context.getConfig().getConfigId());
+                }
             }
         }
     }

@@ -16,6 +16,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * Created by saipkri on 08/09/16.
@@ -28,6 +29,7 @@ public class SpelExpressionEvaluationActor extends UntypedActor {
 
     public SpelExpressionEvaluationActor(final ActorFactory actorFactory) {
         this.actorFactory = actorFactory;
+        format.setTimeZone(TimeZone.getTimeZone("GMT"));
     }
 
     @Override
@@ -47,10 +49,10 @@ public class SpelExpressionEvaluationActor extends UntypedActor {
                     // Run the watcher query now.
                     for (NotificationConfig spelEntry : context.getConfig().getNotification().getSpel().getNotificationConfigs()) {
                         String channelName = spelEntry.getChannelName();
-                        String spel = spelEntry.getSqlQuery();
-
+                        String spel = spelEntry.getSpelExpressionQuery();
                         Expression expression = SpelExpressionCache.compiledExpression(spel.trim());
                         StandardEvaluationContext spelEvalContext = new StandardEvaluationContext(context.getDoc());
+                        System.out.println(" Spel result: "+expression.getValue(spelEvalContext, Boolean.class));
                         if (expression.getValue(spelEvalContext, Boolean.class)) {
                             // SEND IT TO NOTIFICATION ACTOR.
                             ActorRef notificationActor = actorFactory.newActor(NotificationActor.class);

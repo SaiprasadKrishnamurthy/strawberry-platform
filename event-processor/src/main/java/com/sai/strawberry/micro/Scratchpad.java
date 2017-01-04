@@ -51,34 +51,13 @@ public class Scratchpad {
             }
         });*/
 
-        /*ObjectMapper m = new ObjectMapper();
-        System.out.println(m.readValue(new FileInputStream("/Users/saipkri/learning/new/strawberry/event-processor/output.json"), EventConfig.class));
-*/
-        /*ExpressionParser expressionParser = new SpelExpressionParser();
-        Map<String, Object> salaryByWorkers = new HashMap<>();
-        salaryByWorkers.put("Name", "Sai");
-        salaryByWorkers.put("Age", 18);
-        salaryByWorkers.put("Location", "Chennai");
-        salaryByWorkers.put("Status", "Offline");
-        StandardEvaluationContext context = new StandardEvaluationContext(salaryByWorkers);
-        Expression expression = expressionParser.parseExpression("['Name'].equals('Sai') && ['Age'] < 20");
-        String result = (String) expression.getValue(context, String.class);
-        System.out.println(result);*/
-
-        System.out.println(CustomProcessorHook.class.isAssignableFrom(MongoBackedDataTransformer.class));
-
-
-        foo(new String[]{"a", "b"});
-
-        EventConfig config = new EventConfig();
         ObjectMapper m = new ObjectMapper();
-        System.out.println(m.writeValueAsString(config));
-
-
-
-
-
-
+        ExpressionParser expressionParser = new SpelExpressionParser();
+        Map json = m.readValue(new FileInputStream("/Users/saipkri/learning/new/strawberry/event-processor/output.json"), Map.class);
+        StandardEvaluationContext context = new StandardEvaluationContext(json);
+        String spel = "['result'] != null && ['result'].equals('SUCCESS') == false && ['lowerTimeWindow'] <= ['endTimestamp'] && ['upperTimeWindow'] > ['endTimestamp'] ";
+        Expression expression = expressionParser.parseExpression(spel);
+        System.out.println(expression.getValue(context, Boolean.class));
     }
 
     static void foo(String...args) {

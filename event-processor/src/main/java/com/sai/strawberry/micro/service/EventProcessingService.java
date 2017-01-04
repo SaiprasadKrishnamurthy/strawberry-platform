@@ -50,7 +50,8 @@ public class EventProcessingService extends UntypedActor {
 
             ActorRef appCallbackActor = actorFactory.newActor(AppCallbackActor.class);
             ActorRef esPercolationActor = actorFactory.newActor(ESPercolationActor.class);
-            ActorRef watcherSqlDbSetupActor = actorFactory.newActor(WatcherSQLDBActor.class);
+            ActorRef watcherSqlActor = actorFactory.newActor(WatcherSQLDBActor.class);
+            ActorRef spelExpressionEvaluationActor = actorFactory.newActor(SpelExpressionEvaluationActor.class);
 
             // Full ASYNC one way.
             batchSetupActor.tell(context, ActorRef.noSender());
@@ -62,7 +63,8 @@ public class EventProcessingService extends UntypedActor {
             Future<Object> appCallbackFuture = Patterns.ask(appCallbackActor, context, AppCallbackActor.timeout_in_seconds);
             Patterns.pipe(appCallbackFuture, actorFactory.executionContext())
                     .to(esPercolationActor)
-                    .to(watcherSqlDbSetupActor);
+                    .to(watcherSqlActor)
+                    .to(spelExpressionEvaluationActor);
 
 
         } catch (Exception ex) {

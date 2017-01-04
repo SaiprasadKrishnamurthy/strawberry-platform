@@ -1,6 +1,6 @@
 package com.sai.strawberry.api;
 
-import lombok.Data;
+import lombok.*;
 
 import java.util.Map;
 

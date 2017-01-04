@@ -1,0 +1,71 @@
+{
+  "configId": "jenkins_slave_events",
+  "documentIdField": "id",
+  "persistEvent": true,
+  "enableVisualization": true,
+  "enabled": true,
+  "dataDefinitions": {
+    "elasticsearchIndexDefinition": {
+      "properties": {
+        "id": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "timeStamp": {
+          "type": "date"
+        },
+        "displayName": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "availablePhysicalMemory": {
+          "type": "long"
+        },
+        "totalPhysicalMemory": {
+          "type": "long"
+        },
+        "idle": {
+          "type": "boolean"
+        },
+        "diskSpace": {
+          "type": "long"
+        },
+        "osType": {
+          "type": "string"
+        },
+        "slaveOffline": {
+          "type": "long"
+        },
+        "offlineReason": {
+          "type": "string"
+        },
+        "averageResponseTime": {
+          "type": "long"
+        }
+      }
+    },
+    "database": {
+      "mongo": {
+        "upsertMode": true,
+        "maxNumberOfDocsBatch": 10,
+        "maxBatchSizeInBytes": 1000
+      }
+    }
+  },
+  "dataTransformation": {
+    "dataTransformerHookClass": "com.strawberry.apps.jenkins.JenkinsSlaveEventTransformer"
+  },
+  "notification": {
+    "spel": {
+      "notificationConfigs": [
+        {
+          "channelName": "offline_slaves_notification_channel",
+          "durable": false,
+          "webhookUrl": "https://hooks.slack.com/services/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",
+          "webHookDataTransformerClass": "com.strawberry.apps.jenkins.JenkinsSlaveEventSlackTransformer",
+          "spelExpressionQuery": "['slaveOffline'] == 1"
+        }
+      ]
+    }
+  }
+}

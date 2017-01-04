@@ -1,0 +1,13 @@
+{
+  "id": "1",
+  "timeStamp": "2017-01-02T19:45:16",
+  "displayName": "master",
+  "availablePhysicalMemory": 0,
+  "totalPhysicalMemory": 16723914752,
+  "idle": true,
+  "diskSpace": 100063141888,
+  "osType": "Linux (amd64)",
+  "slaveOffline": true,
+  "offlineReason": "I am down",
+  "averageResponseTime": 0
+}

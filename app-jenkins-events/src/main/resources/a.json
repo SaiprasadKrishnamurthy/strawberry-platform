@@ -13,7 +13,7 @@
   "totalPassedCount": 0,
   "totalFailedCount": 0,
   "totalSkippedCount": 0,
-  "result": "SSS",
+  "result": null,
   "building": false,
   "endTimestamp": 1483366823147,
   "lowerTimeWindow": 1483450842786,

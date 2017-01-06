@@ -15,5 +15,6 @@ public class NotificationConfig {
     private String sqlQuery;
     private String spelExpressionQuery;
     private String webhookUrl;
+    private String webhookUrlProviderClass;
     private String webHookDataTransformerClass;
 }

@@ -31,7 +31,8 @@
           "type": "long"
         },
         "osType": {
-          "type": "string"
+          "type": "string",
+          "index": "not_analyzed"
         },
         "slaveOffline": {
           "type": "long"
@@ -47,8 +48,8 @@
     "database": {
       "mongo": {
         "upsertMode": true,
-        "maxNumberOfDocsBatch": 10,
-        "maxBatchSizeInBytes": 1000
+        "maxNumberOfDocsBatch": 100,
+        "maxBatchSizeInBytes": 100000000
       }
     }
   },
@@ -61,7 +62,7 @@
         {
           "channelName": "offline_slaves_notification_channel",
           "durable": false,
-          "webhookUrl": "https://hooks.slack.com/services/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",
+          "webhookUrlProviderClass": "com.strawberry.apps.jenkins.SlackNotificationUrlProvider",
           "webHookDataTransformerClass": "com.strawberry.apps.jenkins.JenkinsSlaveEventSlackTransformer",
           "spelExpressionQuery": "['slaveOffline'] == 1"
         }

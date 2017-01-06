@@ -14,10 +14,7 @@ public class Scratchpad {
 
     public static void main(String[] args) throws Exception{
 
-        SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss");
-        f.setTimeZone(TimeZone.getTimeZone("GMT"));
-
-        System.out.println(f.format(new Date()));
+        new ObjectMapper().readValue(new File("/Users/saipkri/learning/new/strawberry/app-jenkins-events/src/main/resources/jenkins_slave_events_config.json"), EventConfig.class);
 
 
     }

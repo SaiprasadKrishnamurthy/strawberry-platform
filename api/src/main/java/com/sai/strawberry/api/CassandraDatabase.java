@@ -10,4 +10,5 @@ import java.util.List;
 @Data
 public class CassandraDatabase {
     private List<String> cassandraDDLs;
+    private String entityClassName;
 }

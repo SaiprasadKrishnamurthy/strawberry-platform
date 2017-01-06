@@ -47,6 +47,9 @@ public class ESPercolationSetupActor extends UntypedActor {
 
             // create index.
             restTemplate.postForObject(esUrl + "/" + config.getConfigId(), "{}", Map.class, Collections.emptyMap());
+
+            System.out.println(" ------ "+esUrl + "/" + config.getConfigId());
+            System.out.println("Now index: "+isIndexMissing(restTemplate, config));
         }
 
         // apply mappings.

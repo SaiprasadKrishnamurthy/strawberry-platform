@@ -7,6 +7,7 @@ import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.HostDistance;
 import com.datastax.driver.core.PoolingOptions;
 import com.datastax.driver.core.Session;
+import com.datastax.driver.mapping.MappingManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Predicates;
 import com.mongodb.MongoClient;
@@ -126,6 +127,8 @@ public class EventProcessorApplication {
 
     private Session cassandraSession;
 
+    private MappingManager cassandraMappingManager;
+
     private Set<String> configIds = new HashSet<>();
 
     private ActorSystem actorSystem() {
@@ -139,7 +142,7 @@ public class EventProcessorApplication {
 
     @Bean
     public ActorFactory actorFactory(final MongoTemplate mongoTemplate) throws Exception {
-        ActorFactory actorFactory = new ActorFactory(actorSystem(), kafkaProducer(), jestClient(), mongoTemplate, mongoForBatch(), esIndexBatchSize, esUrl, kibanaOpsIndexName.toLowerCase().trim(), jdbcTemplate(), cassandraCluster(), cassandraSession);
+        ActorFactory actorFactory = new ActorFactory(actorSystem(), kafkaProducer(), jestClient(), mongoTemplate, mongoForBatch(), esIndexBatchSize, esUrl, kibanaOpsIndexName.toLowerCase().trim(), jdbcTemplate(), cassandraCluster(), cassandraSession, cassandraMappingManager);
         initConfigs(actorFactory);
         return actorFactory;
     }
@@ -163,6 +166,7 @@ public class EventProcessorApplication {
                     .withPoolingOptions(poolingOptions)
                     .build();
             cassandraSession = cluster.connect();
+            cassandraMappingManager = new MappingManager(cassandraSession);
             return cluster;
         } catch (Exception ex) {
             throw new RuntimeException(ex);

@@ -9,5 +9,5 @@ import lombok.Data;
 public class Database {
     private CassandraDatabase cassandra;
     private MongoDatabase mongo;
-
+    private String shouldPersistConditionEvaluationClass;
 }

@@ -19,4 +19,5 @@ public class EventConfig {
     private Notification notification;
     private Map<String, Object> internal;
     private String searchletClass;
+    private String shouldAcceptConditionEvaluationClass;
 }

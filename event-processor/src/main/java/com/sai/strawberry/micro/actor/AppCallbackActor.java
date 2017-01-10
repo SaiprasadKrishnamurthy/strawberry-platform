@@ -2,6 +2,7 @@ package com.sai.strawberry.micro.actor;
 
 import akka.actor.UntypedActor;
 import com.datastax.driver.core.Session;
+import com.datastax.driver.mapping.Mapper;
 import com.datastax.driver.mapping.MappingManager;
 import com.sai.strawberry.api.CassandraBackedDataTransformer;
 import com.sai.strawberry.api.CustomProcessorHook;
@@ -9,6 +10,7 @@ import com.sai.strawberry.api.EventConfig;
 import com.sai.strawberry.micro.model.EventProcessingContext;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -52,6 +54,11 @@ public class AppCallbackActor extends UntypedActor {
         } else {
             MappingManager mappingManager = new MappingManager(cassandraSession);
             CassandraBackedDataTransformer cassandraBackedDataTransformer = (CassandraBackedDataTransformer) aClass.newInstance();
+            List<Object> entitiesToBeSaved = cassandraBackedDataTransformer.entities(cassandraSession, eventStreamConfig, jsonIn);
+            entitiesToBeSaved.forEach(entityToBeSaved -> {
+                Mapper<Object> mapper = mappingManager.mapper((Class<Object>) entityToBeSaved.getClass());
+                mapper.save(entityToBeSaved);
+            });
             return cassandraBackedDataTransformer.process(cassandraSession, mappingManager, eventStreamConfig, jsonIn);
         }
     }

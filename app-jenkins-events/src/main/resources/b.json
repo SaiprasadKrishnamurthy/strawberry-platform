@@ -11,3 +11,12 @@
   "offlineReason": "I am down",
   "averageResponseTime": 0
 }
+
+(slaveOffline == true && memory < 1000) ---> "offline_channel"
+EXPRESSION --> ACTION
+
+* ES Query
+* SQL
+* SPEL (Groovy)
+
+

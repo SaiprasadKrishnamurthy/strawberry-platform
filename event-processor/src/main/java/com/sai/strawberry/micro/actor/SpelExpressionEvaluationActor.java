@@ -57,7 +57,7 @@ public class SpelExpressionEvaluationActor extends UntypedActor {
                             // SEND IT TO NOTIFICATION ACTOR.
                             ActorRef notificationActor = actorFactory.newActor(NotificationActor.class);
                             notifiedChannels.add(channelName.trim());
-                            notificationActor.tell(new NotificationTuple(context, channelName), getSelf());
+                            notificationActor.tell(new NotificationTuple(context, channelName, spelEntry), getSelf());
                         }
                     }
 

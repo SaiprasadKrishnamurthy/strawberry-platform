@@ -14,3 +14,9 @@
   "bank": "HSBC",
   "amount": 87
 }
+
+// Check 1:
+User location: Bangalore
+
+1. if(transactionLocation > 1000 miles radius from user location) Alert - ES.
+2. amount > 20 - SQL

@@ -17,4 +17,5 @@ public class NotificationConfig {
     private String webhookUrl;
     private String webhookUrlProviderClass;
     private String webHookDataTransformerClass;
+    private String notificationHandlerClass;
 }

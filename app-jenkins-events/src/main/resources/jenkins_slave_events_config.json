@@ -62,9 +62,16 @@
         {
           "channelName": "offline_slaves_notification_channel",
           "durable": false,
-          "webhookUrlProviderClass": "com.strawberry.apps.jenkins.SlackNotificationUrlProvider",
+          "webhookurl": "http://slack.com/sssss",
           "webHookDataTransformerClass": "com.strawberry.apps.jenkins.JenkinsSlaveEventSlackTransformer",
-          "spelExpressionQuery": "['slaveOffline'] == 1"
+          "spelExpressionQuery": "['slaveOffline'] == true"
+        },
+        {
+          "channelName": "slaves_low_disk_space_alert_notification_channel",
+          "durable": false,
+          "webhookurl": "http://slack.com/diskteamchannel",
+          "webHookDataTransformerClass": "com.strawberry.apps.jenkins.JenkinsSlaveEventSlackTransformer",
+          "spelExpressionQuery": "['diskSpace'] <= 10000"
         }
       ]
     }

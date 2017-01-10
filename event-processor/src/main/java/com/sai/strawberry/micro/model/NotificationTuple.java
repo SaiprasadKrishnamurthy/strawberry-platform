@@ -1,5 +1,6 @@
 package com.sai.strawberry.micro.model;
 
+import com.sai.strawberry.api.NotificationConfig;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -11,4 +12,5 @@ import lombok.Data;
 public class NotificationTuple {
     private EventProcessingContext context;
     private String notificationChannel;
+    private NotificationConfig notificationConfig;
 }

@@ -4,10 +4,14 @@ import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.sai.strawberry.api.Callback;
 import com.sai.strawberry.micro.config.ActorFactory;
 import com.sai.strawberry.micro.model.NotificationTuple;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+
+import java.util.Map;
 
 /**
  * Created by saipkri on 08/09/16.
@@ -40,9 +44,18 @@ public class NotificationActor extends UntypedActor {
                 sender.send(new ProducerRecord<>(notificationTuple.getNotificationChannel(), MAPPER.writeValueAsString(notificationTuple.getContext().getDoc())));
             }
 
+            // Call the handler if any.
+            if(StringUtils.isNotBlank(notificationTuple.getNotificationConfig().getNotificationHandlerClass())) {
+                invokeCallback(notificationTuple.getNotificationConfig().getNotificationHandlerClass().trim(), notificationTuple.getContext().getDoc());
+            }
             // Additionally publish to any webhooks.
             ActorRef webhooksActor = actorFactory.newActor(WebhooksNotificationActor.class);
             webhooksActor.tell(message, webhooksActor);
         }
+    }
+
+    private String invokeCallback(final String className, final Map jsonIn) throws Exception {
+        Class<Callback> callback = (Class<Callback>) Class.forName(className);
+        return callback.newInstance().call(jsonIn);
     }
 }

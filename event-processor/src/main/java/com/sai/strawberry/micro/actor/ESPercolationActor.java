@@ -3,6 +3,7 @@ package com.sai.strawberry.micro.actor;
 import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sai.strawberry.api.NotificationConfig;
 import com.sai.strawberry.micro.config.ActorFactory;
 import com.sai.strawberry.micro.model.EventProcessingContext;
 import com.sai.strawberry.micro.model.NotificationTuple;
@@ -60,7 +61,13 @@ public class ESPercolationActor extends UntypedActor {
                     String queryName = ((Map) percolationQueryObject.get("_source")).get("queryName").toString();
 
                     notifiedChannels.add(queryName.trim());
-                    notificationActor.tell(new NotificationTuple(context, queryName), getSelf());
+                    NotificationConfig notificationConfig = context.getConfig().getNotification().getElasticsearch().getNotificationConfigs()
+                            .stream()
+                            .filter(con -> con.getChannelName().equals(queryName.trim()))
+                            .findFirst()
+                            .get();
+
+                    notificationActor.tell(new NotificationTuple(context, queryName, notificationConfig), getSelf());
                 }
 
                 // Construct an event now.

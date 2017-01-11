@@ -66,7 +66,6 @@ public class ESPercolationActor extends UntypedActor {
                             .filter(con -> con.getChannelName().equals(queryName.trim()))
                             .findFirst()
                             .get();
-
                     notificationActor.tell(new NotificationTuple(context, queryName, notificationConfig), getSelf());
                 }
 

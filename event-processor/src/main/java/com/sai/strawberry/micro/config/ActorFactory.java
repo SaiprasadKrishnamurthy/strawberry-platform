@@ -51,7 +51,7 @@ public class ActorFactory {
         actors.put(CassandraDDLSetupActor.class.getName(), actorSystem.actorOf(Props.create(CassandraDDLSetupActor.class, cassandraCluster).withRouter(new RoundRobinPool(Runtime.getRuntime().availableProcessors()))));
         actors.put(SpelExpressionEvaluationActor.class.getName(), actorSystem.actorOf(Props.create(SpelExpressionEvaluationActor.class, this).withRouter(new RoundRobinPool(Runtime.getRuntime().availableProcessors()))));
         actors.put(ESSearchActor.class.getName(), actorSystem.actorOf(Props.create(ESSearchActor.class, esUrl).withRouter(new RoundRobinPool(Runtime.getRuntime().availableProcessors()))));
-        actors.put(PreNotificationChecksActor.class.getName(), actorSystem.actorOf(Props.create(PreNotificationChecksActor.class, mongoTemplate, batchMongoTemplate, cassandraSession, cassandraMappingManager).withRouter(new RoundRobinPool(Runtime.getRuntime().availableProcessors()))));
+        actors.put(PreNotificationChecksActor.class.getName(), actorSystem.actorOf(Props.create(PreNotificationChecksActor.class, this, mongoTemplate, batchMongoTemplate, cassandraSession, cassandraMappingManager).withRouter(new RoundRobinPool(Runtime.getRuntime().availableProcessors()))));
     }
 
     public <T> ActorRef newActor(final Class<T> actorType) {

@@ -34,6 +34,7 @@ public class SpelExpressionEvaluationActor extends UntypedActor {
 
     @Override
     public void onReceive(final Object _context) throws Throwable {
+        System.out.println(" ------ ENTERED SPEL ----------- "+_context);
         if (_context instanceof EventProcessingContext) {
             EventProcessingContext context = (EventProcessingContext) _context;
             EventConfig config = context.getConfig();

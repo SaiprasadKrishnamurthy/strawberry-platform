@@ -73,9 +73,6 @@ public class EventProcessingService extends UntypedActor {
                 ActorRef esIndexActor = actorFactory.newActor(ESIndexActor.class);
 
                 ActorRef appCallbackActor = actorFactory.newActor(AppCallbackActor.class);
-                ActorRef esPercolationActor = actorFactory.newActor(ESPercolationActor.class);
-                ActorRef watcherSqlActor = actorFactory.newActor(WatcherSQLDBActor.class);
-                ActorRef spelExpressionEvaluationActor = actorFactory.newActor(SpelExpressionEvaluationActor.class);
                 ActorRef preNotificationChecksActor = actorFactory.newActor(PreNotificationChecksActor.class);
 
                 // Full ASYNC one way.
@@ -87,11 +84,7 @@ public class EventProcessingService extends UntypedActor {
                 // The below ones must be done in a sequence, but still async.
                 Future<Object> appCallbackFuture = Patterns.ask(appCallbackActor, context, AppCallbackActor.timeout_in_seconds);
                 Patterns.pipe(appCallbackFuture, actorFactory.executionContext())
-                        .to(preNotificationChecksActor)
-                        .to(esPercolationActor)
-                        .to(watcherSqlActor)
-                        .to(spelExpressionEvaluationActor);
-
+                        .to(preNotificationChecksActor);
             }
 
         } catch (Exception ex) {

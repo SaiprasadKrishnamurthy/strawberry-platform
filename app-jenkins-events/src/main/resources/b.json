@@ -12,11 +12,8 @@
   "averageResponseTime": 0
 }
 
-(slaveOffline == true && memory < 1000) ---> "offline_channel"
-EXPRESSION --> ACTION
+E1 --> MongoSave ----> Notific ---> Slack ---> (E1 + 2)
+        ((E1 + 2))
 
-* ES Query
-* SQL
-* SPEL (Groovy)
-
-
+E2 --> MongoSave ----> Notific ---> Slack ---> (E2 + timestamp)
+        (E2 + timestamp)

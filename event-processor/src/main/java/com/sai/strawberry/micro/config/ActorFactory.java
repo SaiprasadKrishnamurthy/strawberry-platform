@@ -31,7 +31,7 @@ public class ActorFactory {
     public ActorFactory(final ActorSystem actorSystem, final KafkaProducer<String, String> kafkaTemplate, final JestClient esFacade, final MongoTemplate mongoTemplate, final MongoTemplate batchMongoTemplate, final int esIndexBatchSize, final String esUrl, final String opsIndexName, final JdbcTemplate jdbcTemplate, final Cluster cassandraCluster, final Session cassandraSession, final MappingManager cassandraMappingManager) {
         this.actorSystem = actorSystem;
         // Create the actor pool.
-        actors.put(NotificationActor.class.getName(), actorSystem.actorOf(Props.create(NotificationActor.class, kafkaTemplate, this).withRouter(new RoundRobinPool(Runtime.getRuntime().availableProcessors()))));
+        actors.put(NotificationActor.class.getName(), actorSystem.actorOf(Props.create(NotificationActor.class, kafkaTemplate, this, mongoTemplate, batchMongoTemplate, cassandraSession, cassandraMappingManager).withRouter(new RoundRobinPool(Runtime.getRuntime().availableProcessors()))));
         actors.put(ESIndexActor.class.getName(), actorSystem.actorOf(Props.create(ESIndexActor.class, esFacade, esIndexBatchSize).withRouter(new RoundRobinPool(Runtime.getRuntime().availableProcessors()))));
         actors.put(MongoBatchsetupActor.class.getName(), actorSystem.actorOf(Props.create(MongoBatchsetupActor.class, mongoTemplate, batchMongoTemplate).withRouter(new RoundRobinPool(Runtime.getRuntime().availableProcessors()))));
         actors.put(MongoPersistenceActor.class.getName(), actorSystem.actorOf(Props.create(MongoPersistenceActor.class, mongoTemplate, batchMongoTemplate).withRouter(new RoundRobinPool(Runtime.getRuntime().availableProcessors()))));

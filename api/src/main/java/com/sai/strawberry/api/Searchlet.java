@@ -4,7 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 
 public abstract class Searchlet<T> {
-    public abstract String toElasticsearchQuery(T criteria, XContentBuilder queryBuilder);
+    public abstract String toElasticsearchQuery(T criteria, XContentBuilder queryBuilder) throws Exception;
 
     public T newSearchCriteria() {
         try {

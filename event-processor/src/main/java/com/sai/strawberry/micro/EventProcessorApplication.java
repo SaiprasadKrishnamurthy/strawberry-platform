@@ -107,7 +107,7 @@ public class EventProcessorApplication {
     @Inject
     private ApplicationContext applicationContext;
 
-    @Value("${cleanupExistingIndex ?: true}")
+    @Value("${cleanupExistingIndex}")
     private boolean cleanupExistingIndex;
 
     @Value("${kibanaOpsIndexName ?: strawberryOpsIdx}")

@@ -4,6 +4,8 @@ import akka.actor.UntypedActor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sai.strawberry.api.EventConfig;
 import com.sai.strawberry.api.NotificationConfig;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
@@ -37,6 +39,7 @@ public class ESPercolationSetupActor extends UntypedActor {
     // Blocking API
     public Void init(final boolean forceRecreateEsIndex, final EventConfig config) throws Exception {
         RestTemplate restTemplate = new RestTemplate();
+        System.out.println(" Force create ES index: " + forceRecreateEsIndex);
         if (forceRecreateEsIndex) {
             try {
                 restTemplate.delete(esUrl + "/" + config.getConfigId());
@@ -45,16 +48,20 @@ public class ESPercolationSetupActor extends UntypedActor {
         }
         if (isIndexMissing(restTemplate, config)) {
 
+            System.out.println("Index missing: ----- ");
+
             // create index.
             restTemplate.postForObject(esUrl + "/" + config.getConfigId(), "{}", Map.class, Collections.emptyMap());
 
-            System.out.println(" ------ "+esUrl + "/" + config.getConfigId());
-            System.out.println("Now index: "+isIndexMissing(restTemplate, config));
+            System.out.println(" ------ " + esUrl + "/" + config.getConfigId());
+            System.out.println("Now index: " + isIndexMissing(restTemplate, config));
         }
 
-        // apply mappings.
+        // Apply mappings only when it is forced. Otherwise it will delete all the documents in the index.
         if (config.getDataDefinitions() != null && config.getDataDefinitions().getElasticsearchIndexDefinition() != null) {
-            restTemplate.postForObject(esUrl + "/" + config.getConfigId() + "/_mapping/" + config.getConfigId(), JSONSERIALIZER.writeValueAsString(config.getDataDefinitions().getElasticsearchIndexDefinition()), Map.class, Collections.emptyMap());
+            System.out.println(" Applying mappings now....");
+            HttpEntity<String> entity = new HttpEntity<>(JSONSERIALIZER.writeValueAsString(config.getDataDefinitions().getElasticsearchIndexDefinition()));
+            restTemplate.exchange(esUrl + "/" + config.getConfigId() + "/_mapping/" + config.getConfigId(), HttpMethod.PUT, entity, Map.class);
         }
 
         if (config.getNotification() != null

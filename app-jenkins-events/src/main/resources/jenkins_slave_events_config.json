@@ -47,7 +47,7 @@
     },
     "database": {
       "mongo": {
-        "upsertMode": false,
+        "upsertMode": true,
         "maxNumberOfDocsBatch": 100,
         "maxBatchSizeInBytes": 100000000
       }
@@ -57,7 +57,6 @@
     "dataTransformerHookClass": "com.strawberry.apps.jenkins.JenkinsSlaveEventTransformer"
   },
   "notification": {
-    "shouldBeConsideredForNotificationConditionEvaluationClass": "com.strawberry.apps.jenkins.SlaveStatusShouldBeNotifiedCondition",
     "spel": {
       "notificationConfigs": [
         {
@@ -66,14 +65,11 @@
           "webhookUrl": "https://hooks.slack.com/services/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",
           "webHookDataTransformerClass": "com.strawberry.apps.jenkins.JenkinsSlaveEventSlackTransformer",
           "spelExpressionQuery": "['slaveOffline'] > 0",
-          "notificationHandlerClass": "com.strawberry.apps.jenkins.SlaveOfflineNotificationHandler"
-        },
-        {
-          "channelName": "slaves_low_disk_space_alert_notification_channel",
-          "durable": false,
-          "webhookUrl": "https://hooks.slack.com/services/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",
-          "webHookDataTransformerClass": "com.strawberry.apps.jenkins.JenkinsSlaveEventSlackTransformer",
-          "spelExpressionQuery": "['diskSpace'] <= 10000"
+          "throttle": {
+            "fieldIdentifier": "displayName",
+            "numberOfNotifications": 2,
+            "timeWindowInMinutes": 10
+          }
         }
       ]
     }

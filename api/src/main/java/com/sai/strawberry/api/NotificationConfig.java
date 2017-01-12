@@ -18,4 +18,5 @@ public class NotificationConfig {
     private String webhookUrlProviderClass;
     private String webHookDataTransformerClass;
     private String notificationHandlerClass;
+    private NotificationThrottler throttle;
 }

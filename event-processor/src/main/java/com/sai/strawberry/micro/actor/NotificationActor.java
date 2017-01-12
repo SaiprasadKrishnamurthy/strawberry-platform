@@ -8,13 +8,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sai.strawberry.api.ConditionEvaluatorParamsHolder;
 import com.sai.strawberry.api.EventConfig;
 import com.sai.strawberry.api.Handler;
+import com.sai.strawberry.api.NotificationThrottler;
 import com.sai.strawberry.micro.config.ActorFactory;
 import com.sai.strawberry.micro.model.NotificationTuple;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -47,18 +53,75 @@ public class NotificationActor extends UntypedActor {
     @Override
     public void onReceive(final Object message) throws Throwable {
         if (message instanceof NotificationTuple) {
+
             NotificationTuple notificationTuple = (NotificationTuple) message;
-            if (notificationTuple.getContext().shouldNotifyToKafkaTopic(notificationTuple.getNotificationChannel())) {
+
+            boolean shouldNotify = true;
+            // Throttle notifications if needed.
+            if (notificationTuple.getNotificationConfig().getThrottle() != null) {
+                NotificationThrottler throttler = notificationTuple.getNotificationConfig().getThrottle();
+                String fieldName = throttler.getFieldIdentifier().trim();
+                String fieldValue = notificationTuple.getContext().getDoc().get(throttler.getFieldIdentifier().trim()).toString();
+                int noOfNotifications = throttler.getNumberOfNotifications();
+                int timeWindowMinutes = throttler.getTimeWindowInMinutes();
+
+                // query mongo.
+                Query query = new Query(Criteria.where(fieldName)
+                        .is(fieldValue)
+                        .andOperator(Criteria.where("event").is(notificationTuple.getContext().getConfig().getConfigId())));
+
+                query.with(new Sort(Sort.Direction.DESC, "notifiedTimestamp")).limit(noOfNotifications);
+
+                List<Map> recentlyNotifiedEvents = mongoTemplate.find(query, Map.class, "notification_throttles");
+
+                System.out.println(" Recently notif events " + recentlyNotifiedEvents);
+                shouldNotify = recentlyNotifiedEvents.size() < noOfNotifications;
+                System.out.println(" Should notify: " + shouldNotify);
+                if (!shouldNotify && recentlyNotifiedEvents != null && !recentlyNotifiedEvents.isEmpty()) {
+                    // find the difference between n, n-1, n-2 etc.
+                    long current = System.currentTimeMillis();
+                    long window = timeWindowMinutes * 60 * 1000;
+                    int count = 0;
+
+                    for (Map event : recentlyNotifiedEvents) {
+                        long time = (long) event.get("notifiedTimestamp");
+                        System.out.println(" Time: " + time);
+                        System.out.println(" Current: " + current);
+                        if ((current - time) < window) {
+                            count++;
+                        }
+                    }
+                    shouldNotify = count < noOfNotifications;
+                    System.out.println(" Should notify noof: " + noOfNotifications);
+                    System.out.println(" Should notify count: " + count);
+                    System.out.println(" Should notify here: " + shouldNotify);
+                }
+                if (shouldNotify) {
+                    Map<String, Object> notificationTimestamps = new HashMap<>();
+                    notificationTimestamps.put(fieldName, fieldValue);
+                    notificationTimestamps.put("notifiedTimestamp", System.currentTimeMillis());
+                    notificationTimestamps.put("event", notificationTuple.getContext().getConfig().getConfigId());
+                    mongoTemplate.save(notificationTimestamps, "notification_throttles");
+                }
+            }
+
+            System.out.println(" Should notify there: " + shouldNotify);
+
+
+            if (shouldNotify && notificationTuple.getContext().shouldNotifyToKafkaTopic(notificationTuple.getNotificationChannel())) {
                 sender.send(new ProducerRecord<>(notificationTuple.getNotificationChannel(), MAPPER.writeValueAsString(notificationTuple.getContext().getDoc())));
             }
 
             // Call the handler if any.
-            if (StringUtils.isNotBlank(notificationTuple.getNotificationConfig().getNotificationHandlerClass())) {
+            if (shouldNotify && StringUtils.isNotBlank(notificationTuple.getNotificationConfig().getNotificationHandlerClass())) {
                 invokeHandler(notificationTuple.getNotificationConfig().getNotificationHandlerClass().trim(), notificationTuple.getContext().getDoc(), notificationTuple.getContext().getConfig());
             }
-            // Additionally publish to any webhooks.
-            ActorRef webhooksActor = actorFactory.newActor(WebhooksNotificationActor.class);
-            webhooksActor.tell(message, webhooksActor);
+
+            if (shouldNotify) {
+                // Additionally publish to any webhooks.
+                ActorRef webhooksActor = actorFactory.newActor(WebhooksNotificationActor.class);
+                webhooksActor.tell(message, webhooksActor);
+            }
         }
     }
 

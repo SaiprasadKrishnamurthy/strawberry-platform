@@ -40,6 +40,11 @@ public class AppCallbackActor extends UntypedActor {
             if (context.getConfig().getDataTransformation() != null
                     && context.getConfig().getDataTransformation().getDataTransformerHookClass() != null) {
                 Map doc = invokeCallback(context.getConfig(), context.getDoc());
+
+                // Add the important metadata back in the new transformed doc.
+                doc.put("__configId__", context.getDoc().get("__configId__"));
+                doc.put("__naturalId__", context.getDoc().get("__naturalId__"));
+
                 _ctx = new EventProcessingContext(doc, context.getConfig(), context.getStartTimestamp());
             }
         }
@@ -54,7 +59,7 @@ public class AppCallbackActor extends UntypedActor {
         } else {
             MappingManager mappingManager = new MappingManager(cassandraSession);
             CassandraBackedDataTransformer cassandraBackedDataTransformer = (CassandraBackedDataTransformer) aClass.newInstance();
-            List<Object> entitiesToBeSaved = cassandraBackedDataTransformer.entities(cassandraSession, eventStreamConfig, jsonIn);
+            List<Object> entitiesToBeSaved = cassandraBackedDataTransformer.entities(cassandraSession, mappingManager, eventStreamConfig, jsonIn);
             entitiesToBeSaved.forEach(entityToBeSaved -> {
                 Mapper<Object> mapper = mappingManager.mapper((Class<Object>) entityToBeSaved.getClass());
                 mapper.save(entityToBeSaved);

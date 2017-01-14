@@ -70,7 +70,6 @@ public class EventProcessingService extends UntypedActor {
                 ActorRef persistenceActor = actorFactory.newActor(MongoPersistenceActor.class);
                 ActorRef batchSetupActor = actorFactory.newActor(MongoBatchsetupActor.class);
                 ActorRef kibanaActor = actorFactory.newActor(KibanaActor.class);
-                ActorRef esIndexActor = actorFactory.newActor(ESIndexActor.class);
 
                 ActorRef appCallbackActor = actorFactory.newActor(AppCallbackActor.class);
                 ActorRef preNotificationChecksActor = actorFactory.newActor(PreNotificationChecksActor.class);
@@ -79,7 +78,6 @@ public class EventProcessingService extends UntypedActor {
                 batchSetupActor.tell(context, ActorRef.noSender());
                 persistenceActor.tell(context, ActorRef.noSender());
                 kibanaActor.tell(context, ActorRef.noSender());
-                esIndexActor.tell(context, ActorRef.noSender());
 
                 // The below ones must be done in a sequence, but still async.
                 Future<Object> appCallbackFuture = Patterns.ask(appCallbackActor, context, AppCallbackActor.timeout_in_seconds);

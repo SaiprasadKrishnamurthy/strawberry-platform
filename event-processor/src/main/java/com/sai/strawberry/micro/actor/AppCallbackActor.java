@@ -51,7 +51,9 @@ public class AppCallbackActor extends UntypedActor {
                 doc.put("__naturalId__", context.getDoc().get("__naturalId__"));
 
                 _ctx = new EventProcessingContext(doc, context.getConfig(), context.getStartTimestamp());
-                esIndexActor.tell(_ctx, getSelf());
+                if (context.getConfig().isIndexEvent()) {
+                    esIndexActor.tell(_ctx, getSelf());
+                }
             } else {
                 esIndexActor.tell(message, getSelf());
             }

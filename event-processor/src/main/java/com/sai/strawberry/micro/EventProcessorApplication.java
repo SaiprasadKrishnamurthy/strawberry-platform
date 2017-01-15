@@ -47,6 +47,7 @@ import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.listener.config.ContainerProperties;
+import org.springframework.scheduling.annotation.EnableAsync;
 import scala.concurrent.Future;
 import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.PathSelectors;
@@ -68,11 +69,12 @@ import static java.util.stream.Collectors.toList;
  */
 @Configuration
 @EnableAutoConfiguration
-@ComponentScan
+@ComponentScan(basePackages = {"com.sai.strawberry.micro", "${springBeansPkgs:''}"})
 @EnableMongoRepositories
 //@EnableEurekaClient
 @EnableSwagger2
 @EnableKafka
+@EnableAsync
 public class EventProcessorApplication {
 
     private static final Logger LOGGER = Logger.getLogger(EventProcessorApplication.class);
@@ -195,6 +197,7 @@ public class EventProcessorApplication {
                 .map(Optional::get)
                 .forEach(config -> {
                     EventConfig eventConfig = (EventConfig) config;
+
                     configIds.add(eventConfig.getConfigId().trim());
 
                     ActorRef watcherSqlDbSetupActor = actorFactory.newActor(WatcherSQLDBSetupActor.class);

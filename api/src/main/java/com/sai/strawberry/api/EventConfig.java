@@ -12,6 +12,7 @@ public class EventConfig {
     private String configId;
     private String documentIdField;
     private boolean persistEvent;
+    private boolean indexEvent = true;
     private boolean enableVisualization;
     private boolean enabled;
     private DataDefinitions dataDefinitions;
@@ -20,4 +21,5 @@ public class EventConfig {
     private Map<String, Object> internal;
     private String searchletClass;
     private String shouldAcceptConditionEvaluationClass;
+
 }

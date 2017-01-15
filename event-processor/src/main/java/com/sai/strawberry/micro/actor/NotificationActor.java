@@ -113,7 +113,7 @@ public class NotificationActor extends UntypedActor {
             }
 
             // Call the handler if any.
-            if (shouldNotify && StringUtils.isNotBlank(notificationTuple.getNotificationConfig().getNotificationHandlerClass())) {
+            if (StringUtils.isNotBlank(notificationTuple.getNotificationConfig().getNotificationHandlerClass())) {
                 invokeHandler(notificationTuple.getNotificationConfig().getNotificationHandlerClass().trim(), notificationTuple.getContext().getDoc(), notificationTuple.getContext().getConfig());
             }
 

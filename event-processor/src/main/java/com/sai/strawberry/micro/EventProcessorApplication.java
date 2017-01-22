@@ -11,6 +11,7 @@ import com.datastax.driver.mapping.MappingManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Predicates;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientOptions;
 import com.sai.strawberry.api.EventConfig;
 import com.sai.strawberry.micro.actor.*;
 import com.sai.strawberry.micro.config.ActorFactory;
@@ -118,10 +119,10 @@ public class EventProcessorApplication {
     @Value("${sqlDbConnectionPoolSize ?: 30}")
     private int sqlDbConnectionPoolSize;
 
-    @Value("${cassandraSeedNodes ?: 127.0.0.1}")
+    @Value("${cassandraSeedNodes}")
     private String cassandraSeedNodes;
 
-    @Value("${cassandraConnectionPoolSize ?: 10}")
+    @Value("${cassandraConnectionPoolSize}")
     private int cassandraConnectionPoolSize;
 
     @Value("${kafkaConsumerGroup}")
@@ -158,6 +159,8 @@ public class EventProcessorApplication {
     @Bean(destroyMethod = "close")
     public Cluster cassandraCluster() {
         try {
+
+            System.out.println(cassandraSeedNodes);
             PoolingOptions poolingOptions = new PoolingOptions();
             poolingOptions.setMaxRequestsPerConnection(HostDistance.LOCAL, cassandraConnectionPoolSize);
             Cluster.Builder builder = Cluster.builder();
@@ -229,7 +232,7 @@ public class EventProcessorApplication {
 
     @Bean
     public MongoDbFactory getMongoDbFactory() throws Exception {
-        MongoClient mongoClient = new MongoClient(mongoHost, mongoPort);
+        MongoClient mongoClient = new MongoClient(mongoHost, MongoClientOptions.builder().connectTimeout(100000).socketTimeout(1000000).heartbeatConnectTimeout(1000000).heartbeatSocketTimeout(1000000).maxWaitTime(1000000).build());
         return new SimpleMongoDbFactory(mongoClient, mongoDb);
     }
 

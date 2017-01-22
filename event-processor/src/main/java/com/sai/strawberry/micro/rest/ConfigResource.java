@@ -48,7 +48,7 @@ public class ConfigResource {
     @CrossOrigin(methods = {RequestMethod.POST, RequestMethod.PUT, RequestMethod.OPTIONS, RequestMethod.GET})
     @RequestMapping(value = "/configs", method = RequestMethod.GET, produces = "application/json")
     public DeferredResult<ResponseEntity<List<EventConfig>>> configs() throws Exception {
-        DeferredResult<ResponseEntity<List<EventConfig>>> deferredResult = new DeferredResult<>(5000L);
+        DeferredResult<ResponseEntity<List<EventConfig>>> deferredResult = new DeferredResult<>(50000L);
         ActorRef repositoryActor = actorFactory.newActor(RepositoryActor.class);
 
         Future<Object> results = Patterns.ask(repositoryActor, EventConfig.class, RepositoryActor.timeout_in_seconds);

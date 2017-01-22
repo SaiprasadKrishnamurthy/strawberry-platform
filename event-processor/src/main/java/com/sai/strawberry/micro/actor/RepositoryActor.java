@@ -12,7 +12,7 @@ import org.springframework.data.mongodb.core.query.Query;
  */
 public class RepositoryActor extends UntypedActor {
 
-    public static long timeout_in_seconds = 5 * 1000;
+    public static long timeout_in_seconds = 50 * 1000;
 
     private final MongoTemplate mongoTemplate;
     private final ActorFactory actorFactory;

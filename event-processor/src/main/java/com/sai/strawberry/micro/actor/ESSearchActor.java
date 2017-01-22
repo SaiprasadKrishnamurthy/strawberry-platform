@@ -30,18 +30,28 @@ public class ESSearchActor extends UntypedActor {
 
     @Override
     public void onReceive(final Object message) throws Throwable {
-        System.out.println(" ---- "+message);
+        System.out.println(" ---- " + message);
         if (message instanceof SearchletQueryTuple) {
             SearchletQueryTuple searchletQueryTuple = (SearchletQueryTuple) message;
-            System.out.println(" --- "+searchletQueryTuple.getEsQueryJson());
+            System.out.println(" --- " + searchletQueryTuple.getEsQueryJson());
 
+            List<Map> response = null;
             Map searchResponse = rt.postForObject(esUrl + "/" + searchletQueryTuple.getEventConfigId() + "/_search", searchletQueryTuple.getEsQueryJson(), Map.class, Collections.emptyMap());
-            System.out.println(" ---- "+searchResponse);
+            System.out.println(" ---- " + searchResponse);
             Map hits = (Map) searchResponse.get("hits");
             List<Map> hitsList = (List<Map>) hits.get("hits");
-            List<Map> response = hitsList.stream()
-                    .map(doc -> (Map) doc.get("_source"))
-                    .collect(toList());
+            if (!hitsList.isEmpty()) {
+                response = hitsList.stream()
+                        .map(doc -> (Map) doc.get("_source"))
+                        .collect(toList());
+            } else {
+                // Aggregations.
+                Map aggs = (Map) searchResponse.get("aggregations");
+                if(!aggs.isEmpty()) {
+                    String aggName = aggs.keySet().iterator().next().toString();
+                    response = (List<Map>) ((Map)aggs.get(aggName)).get("buckets");
+                }
+            }
             getSender().tell(response, getSelf());
         } else {
             getSender().tell(Collections.emptyList(), getSelf());

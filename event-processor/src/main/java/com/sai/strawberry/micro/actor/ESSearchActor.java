@@ -47,9 +47,9 @@ public class ESSearchActor extends UntypedActor {
             } else {
                 // Aggregations.
                 Map aggs = (Map) searchResponse.get("aggregations");
-                if(!aggs.isEmpty()) {
+                if (aggs != null && !aggs.isEmpty()) {
                     String aggName = aggs.keySet().iterator().next().toString();
-                    response = (List<Map>) ((Map)aggs.get(aggName)).get("buckets");
+                    response = (List<Map>) ((Map) aggs.get(aggName)).get("buckets");
                 }
             }
             getSender().tell(response, getSelf());

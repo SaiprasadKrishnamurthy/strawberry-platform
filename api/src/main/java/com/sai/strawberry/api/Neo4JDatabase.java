@@ -7,8 +7,5 @@ import lombok.Data;
  */
 @Data
 public class Neo4JDatabase {
-    private String dbUrl;
-    private String dbUsername;
-    private String dbPassword;
     private String javaEntityPackages;
 }

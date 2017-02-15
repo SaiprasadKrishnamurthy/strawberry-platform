@@ -9,6 +9,7 @@ import java.util.Map;
  */
 @Data
 public class DataDefinitions {
+    private Map<String, Object> elasticsearchIndexSettings;
     private Map<String, Object> elasticsearchIndexDefinition;
     private Database database;
 }

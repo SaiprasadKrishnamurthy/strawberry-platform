@@ -88,7 +88,7 @@ public class SearchletResource {
     @CrossOrigin(methods = {RequestMethod.POST, RequestMethod.PUT, RequestMethod.OPTIONS, RequestMethod.GET})
     @RequestMapping(value = "/searchlet/{eventStreamConfigId}", method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
     public DeferredResult<ResponseEntity<?>> searchlet(@PathVariable("eventStreamConfigId") final String eventStreamConfigId, @RequestBody final Map searchCriteriaJson) throws Exception {
-        DeferredResult<ResponseEntity<?>> deferredResult = new DeferredResult<>(5000L);
+        DeferredResult<ResponseEntity<?>> deferredResult = new DeferredResult<>(50000L);
         ActorRef repositoryActor = actorFactory.newActor(RepositoryActor.class);
         ActorRef esSearchActor = actorFactory.newActor(ESSearchActor.class);
 
@@ -107,7 +107,7 @@ public class SearchletResource {
                                 Searchlet searchletInstance = (Searchlet) Class.forName(con.getSearchletClass()).getDeclaredConstructor(EventConfig.class).newInstance(con);
                                 XContentBuilder queryBuilder = jsonBuilder();
                                 String esQuery = searchletInstance.toElasticsearchQuery(mapper.convertValue(searchCriteriaJson, searchletInstance.searchCriteriaClass()), queryBuilder);
-                                Future<Object> searchResponse = Patterns.ask(esSearchActor, new SearchletQueryTuple(con.getConfigId(), esQuery), RepositoryActor.timeout_in_seconds);
+                                Future<Object> searchResponse = Patterns.ask(esSearchActor, new SearchletQueryTuple(con.getConfigId(), esQuery), RepositoryActor.timeout_in_seconds * 100);
                                 searchResponse.onSuccess(new OnSuccess<Object>() {
                                     public void onSuccess(final Object _results) {
                                         List<Map> searchRes = (List<Map>) _results;

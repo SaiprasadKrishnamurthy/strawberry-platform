@@ -33,11 +33,11 @@ public class ESSearchActor extends UntypedActor {
 
             List<Map> response = null;
             Map searchResponse = rt.postForObject(esUrl + "/" + searchletQueryTuple.getEventConfigId() + "/_search", searchletQueryTuple.getEsQueryJson(), Map.class, Collections.emptyMap());
-            System.out.println(" ---- " + searchResponse);
             Map hits = (Map) searchResponse.get("hits");
             List<Map> hitsList = (List<Map>) hits.get("hits");
             if (!hitsList.isEmpty()) {
                 response = hitsList.stream()
+                        .map(doc -> processHighlights(doc))
                         .map(doc -> (Map) doc.get("_source"))
                         .collect(toList());
             } else {
@@ -52,5 +52,26 @@ public class ESSearchActor extends UntypedActor {
         } else {
             getSender().tell(Collections.emptyList(), getSelf());
         }
+    }
+
+    private Map processHighlights(Map doc) {
+        Map _source = (Map) doc.get("_source");
+        System.out.println("\t\t Processing Highlights: " + doc.get("highlight"));
+        if (doc.get("highlight") == null) {
+            return doc;
+        } else {
+            Map highlightedFields = (Map) doc.get("highlight");
+            for (Object entry : highlightedFields.entrySet()) {
+                Map.Entry _entry = (Map.Entry) entry;
+                String key = _entry.getKey().toString();
+                System.out.println("\t\t Key: " + key);
+                List value1 = (List) _entry.getValue();
+                System.out.println("\t\t Value: " + value1);
+                String value = (!value1.isEmpty()) ? value1.get(0).toString() : "";
+                _source.put(key, value);
+                System.out.println("\t\t Doc now: " + doc);
+            }
+        }
+        return doc;
     }
 }

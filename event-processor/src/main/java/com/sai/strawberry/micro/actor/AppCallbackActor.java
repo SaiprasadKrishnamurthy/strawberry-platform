@@ -8,8 +8,10 @@ import com.datastax.driver.mapping.MappingManager;
 import com.sai.strawberry.api.CassandraBackedDataTransformer;
 import com.sai.strawberry.api.CustomProcessorHook;
 import com.sai.strawberry.api.EventConfig;
+import com.sai.strawberry.api.Neo4JBackedDataTransformer;
 import com.sai.strawberry.micro.config.ActorFactory;
 import com.sai.strawberry.micro.model.EventProcessingContext;
+import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
 import java.util.List;
@@ -25,14 +27,16 @@ public class AppCallbackActor extends UntypedActor {
     private final MongoTemplate mongoTemplate;
     private final MongoTemplate mongoTemplateBatch;
     private final Session cassandraSession;
+    private final SessionFactory neo4jSessionFactory;
     private final ActorFactory actorFactory;
 
 
-    public AppCallbackActor(final MongoTemplate mongoTemplate, final MongoTemplate mongoTemplateBatch, final Session cassandraSession, final ActorFactory actorFactory) {
+    public AppCallbackActor(final MongoTemplate mongoTemplate, final MongoTemplate mongoTemplateBatch, final Session cassandraSession, final SessionFactory neo4jSessionFactory, final ActorFactory actorFactory) {
         this.mongoTemplate = mongoTemplate;
         this.mongoTemplateBatch = mongoTemplateBatch;
         this.cassandraSession = cassandraSession;
         this.actorFactory = actorFactory;
+        this.neo4jSessionFactory = neo4jSessionFactory;
     }
 
 
@@ -65,9 +69,11 @@ public class AppCallbackActor extends UntypedActor {
     private Map invokeCallback(final EventConfig eventStreamConfig, final Map jsonIn) throws Exception {
         Class<?> aClass = Class.forName(eventStreamConfig.getDataTransformation().getDataTransformerHookClass());
         if (CustomProcessorHook.class.isAssignableFrom(aClass)) {
+            // Generic.
             Class<CustomProcessorHook> callback = (Class<CustomProcessorHook>) aClass;
             return callback.newInstance().execute(eventStreamConfig, jsonIn, mongoTemplate, mongoTemplateBatch);
-        } else {
+        } else if (CassandraBackedDataTransformer.class.isAssignableFrom(aClass)) {
+            // Cassandra
             MappingManager mappingManager = new MappingManager(cassandraSession);
             CassandraBackedDataTransformer cassandraBackedDataTransformer = (CassandraBackedDataTransformer) aClass.newInstance();
             List<Object> entitiesToBeSaved = cassandraBackedDataTransformer.entities(cassandraSession, mappingManager, eventStreamConfig, jsonIn);
@@ -76,6 +82,14 @@ public class AppCallbackActor extends UntypedActor {
                 mapper.save(entityToBeSaved);
             });
             return cassandraBackedDataTransformer.process(cassandraSession, mappingManager, eventStreamConfig, jsonIn);
+        } else if (Neo4JBackedDataTransformer.class.isAssignableFrom(aClass)) {
+            // Neo4j
+            Neo4JBackedDataTransformer neo4jBackedTransformer = (Neo4JBackedDataTransformer) aClass.newInstance();
+            org.neo4j.ogm.session.Session session = neo4jSessionFactory.openSession();
+            List<Object> entitiesToBeSaved = neo4jBackedTransformer.entities(session, eventStreamConfig, jsonIn);
+            entitiesToBeSaved.forEach(session::save);
+            return neo4jBackedTransformer.process(session, eventStreamConfig, jsonIn);
         }
+        return jsonIn;
     }
 }

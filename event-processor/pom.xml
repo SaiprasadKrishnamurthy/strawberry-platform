@@ -178,6 +178,18 @@
         </dependency>
 
         <dependency>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j-ogm-core</artifactId>
+            <version>2.1.1</version>
+        </dependency>
+
+        <dependency> <!-- If you're using the HTTP driver -->
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j-ogm-http-driver</artifactId>
+            <version>2.1.1</version>
+        </dependency>
+
+        <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt</artifactId>
             <version>0.7.0</version>

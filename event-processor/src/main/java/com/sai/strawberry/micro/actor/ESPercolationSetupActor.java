@@ -9,10 +9,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by saipkri on 08/09/16.
@@ -51,7 +48,13 @@ public class ESPercolationSetupActor extends UntypedActor {
             System.out.println("Index missing: ----- ");
 
             // create index.
-            restTemplate.postForObject(esUrl + "/" + config.getConfigId(), "{}", Map.class, Collections.emptyMap());
+            if (config.getDataDefinitions().getElasticsearchIndexSettings() == null) {
+                restTemplate.postForObject(esUrl + "/" + config.getConfigId(), "{}", Map.class, Collections.emptyMap());
+            } else {
+                Map<String, Object> settings = new HashMap<>();
+                settings.put("settings", config.getDataDefinitions().getElasticsearchIndexSettings());
+                restTemplate.postForObject(esUrl + "/" + config.getConfigId(), JSONSERIALIZER.writeValueAsString(settings), Map.class, Collections.emptyMap());
+            }
 
             System.out.println(" ------ " + esUrl + "/" + config.getConfigId());
             System.out.println("Now index: " + isIndexMissing(restTemplate, config));

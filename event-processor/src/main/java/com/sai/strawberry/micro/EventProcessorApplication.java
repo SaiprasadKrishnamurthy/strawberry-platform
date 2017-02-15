@@ -26,6 +26,7 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.log4j.Logger;
+import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -128,6 +129,15 @@ public class EventProcessorApplication {
     @Value("${kafkaConsumerGroup}")
     private String kafkaConsumerGroup;
 
+    @Value("${neo4jDb:#{null}}")
+    private String neo4jDb;
+
+    @Value("${neo4jUser:#{null}}")
+    private String neo4jUser;
+
+    @Value("${neo4jPassword:#{null}}")
+    private String neo4jPassword;
+
     private Session cassandraSession;
 
     private MappingManager cassandraMappingManager;
@@ -138,6 +148,8 @@ public class EventProcessorApplication {
         return ActorSystem.create("StrawberryActorSystem");
     }
 
+    private List<EventConfig> neo4jConfigs = new ArrayList<>();
+
     @Bean
     public static PropertySourcesPlaceholderConfigurer properties() {
         return new PropertySourcesPlaceholderConfigurer();
@@ -145,7 +157,7 @@ public class EventProcessorApplication {
 
     @Bean
     public ActorFactory actorFactory(final MongoTemplate mongoTemplate) throws Exception {
-        ActorFactory actorFactory = new ActorFactory(actorSystem(), kafkaProducer(), jestClient(), mongoTemplate, mongoForBatch(), esIndexBatchSize, esUrl, kibanaOpsIndexName.toLowerCase().trim(), jdbcTemplate(), cassandraCluster(), cassandraSession, cassandraMappingManager);
+        ActorFactory actorFactory = new ActorFactory(actorSystem(), kafkaProducer(), jestClient(), mongoTemplate, mongoForBatch(), esIndexBatchSize, esUrl, kibanaOpsIndexName.toLowerCase().trim(), jdbcTemplate(), cassandraCluster(), cassandraSession, cassandraMappingManager, sessionFactory());
         initConfigs(actorFactory);
         return actorFactory;
     }
@@ -175,6 +187,30 @@ public class EventProcessorApplication {
             return cluster;
         } catch (Exception ex) {
             throw new RuntimeException(ex);
+        }
+    }
+
+    @Bean
+    public SessionFactory sessionFactory() {
+        try {
+            org.neo4j.ogm.config.Configuration config = new org.neo4j.ogm.config.Configuration();
+            config.driverConfiguration()
+                    .setDriverClassName("org.neo4j.ogm.drivers.http.driver.HttpDriver")
+                    .setCredentials(neo4jUser, neo4jPassword)
+                    .setURI(neo4jDb);
+            StringBuilder neo4jEntityPkgs = new StringBuilder();
+            neo4jConfigs.forEach(neoConfig -> {
+                neo4jEntityPkgs.append(neoConfig.getDataDefinitions().getDatabase().getNeo4j().getJavaEntityPackages() + ",");
+            });
+            return new SessionFactory(config, neo4jEntityPkgs.toString());
+        } catch (Exception ex) {
+            // Raise exception only if there's a neo config in the json.
+            if (neo4jConfigs.size() > 0) {
+                throw ex;
+            } else {
+                LOGGER.info(" --- Neo4J settings are ignored as it's not defined --- ");
+                return null;
+            }
         }
     }
 
@@ -226,6 +262,13 @@ public class EventProcessorApplication {
                             && eventConfig.getDataDefinitions().getDatabase().getCassandra() != null) {
                         ActorRef cassandraSetup = actorFactory.newActor(CassandraDDLSetupActor.class);
                         cassandraSetup.tell(config, ActorRef.noSender());
+                    }
+
+                    // Cassandra setup.
+                    if (eventConfig.getDataDefinitions() != null
+                            && eventConfig.getDataDefinitions().getDatabase() != null
+                            && eventConfig.getDataDefinitions().getDatabase().getNeo4j() != null) {
+                        neo4jConfigs.add(eventConfig);
                     }
                 });
     }

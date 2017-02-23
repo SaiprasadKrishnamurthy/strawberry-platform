@@ -64,12 +64,9 @@ public class ESSearchActor extends UntypedActor {
             for (Object entry : highlightedFields.entrySet()) {
                 Map.Entry _entry = (Map.Entry) entry;
                 String key = _entry.getKey().toString();
-                System.out.println("\t\t Key: " + key);
                 List value1 = (List) _entry.getValue();
-                System.out.println("\t\t Value: " + value1);
                 String value = (!value1.isEmpty()) ? value1.get(0).toString() : "";
                 _source.put(key, value);
-                System.out.println("\t\t Doc now: " + doc);
             }
         }
         return doc;

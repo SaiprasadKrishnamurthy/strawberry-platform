@@ -10,6 +10,7 @@ import com.datastax.driver.mapping.MappingManager;
 import com.sai.strawberry.micro.actor.*;
 import com.sai.strawberry.micro.service.EventProcessingService;
 import io.searchbox.client.JestClient;
+import org.apache.activemq.spring.ActiveMQConnectionFactory;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -29,7 +30,7 @@ public class ActorFactory {
     private final ActorSystem actorSystem;
 
 
-    public ActorFactory(final ActorSystem actorSystem, final KafkaProducer<String, String> kafkaTemplate, final JestClient esFacade, final MongoTemplate mongoTemplate, final MongoTemplate batchMongoTemplate, final int esIndexBatchSize, final String esUrl, final String opsIndexName, final JdbcTemplate jdbcTemplate, final Cluster cassandraCluster, final Session cassandraSession, final MappingManager cassandraMappingManager, SessionFactory sessionFactory) {
+    public ActorFactory(final ActorSystem actorSystem, final KafkaProducer<String, String> kafkaTemplate, final JestClient esFacade, final MongoTemplate mongoTemplate, final MongoTemplate batchMongoTemplate, final int esIndexBatchSize, final String esUrl, final String opsIndexName, final JdbcTemplate jdbcTemplate, final Cluster cassandraCluster, final Session cassandraSession, final MappingManager cassandraMappingManager, SessionFactory sessionFactory, final ActiveMQConnectionFactory activeMQConnectionFactory) {
         this.actorSystem = actorSystem;
         // Create the actor pool.
         actors.put(NotificationActor.class.getName(), actorSystem.actorOf(Props.create(NotificationActor.class, kafkaTemplate, this, mongoTemplate, batchMongoTemplate, cassandraSession, cassandraMappingManager).withRouter(new RoundRobinPool(Runtime.getRuntime().availableProcessors()))));
@@ -53,6 +54,7 @@ public class ActorFactory {
         actors.put(SpelExpressionEvaluationActor.class.getName(), actorSystem.actorOf(Props.create(SpelExpressionEvaluationActor.class, this).withRouter(new RoundRobinPool(Runtime.getRuntime().availableProcessors()))));
         actors.put(ESSearchActor.class.getName(), actorSystem.actorOf(Props.create(ESSearchActor.class, esUrl).withRouter(new RoundRobinPool(Runtime.getRuntime().availableProcessors()))));
         actors.put(PreNotificationChecksActor.class.getName(), actorSystem.actorOf(Props.create(PreNotificationChecksActor.class, this, mongoTemplate, batchMongoTemplate, cassandraSession, cassandraMappingManager).withRouter(new RoundRobinPool(Runtime.getRuntime().availableProcessors()))));
+        actors.put(AmqProducerActor.class.getName(), actorSystem.actorOf(Props.create(AmqProducerActor.class, activeMQConnectionFactory, this).withRouter(new RoundRobinPool(Runtime.getRuntime().availableProcessors()))));
     }
 
     public <T> ActorRef newActor(final Class<T> actorType) {

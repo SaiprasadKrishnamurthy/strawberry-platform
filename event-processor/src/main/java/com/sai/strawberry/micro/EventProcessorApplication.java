@@ -16,9 +16,11 @@ import com.sai.strawberry.api.EventConfig;
 import com.sai.strawberry.micro.actor.*;
 import com.sai.strawberry.micro.config.ActorFactory;
 import com.sai.strawberry.micro.eventlistener.EventListener;
+import com.sai.strawberry.micro.eventlistener.JmsEventListener;
 import io.searchbox.client.JestClient;
 import io.searchbox.client.JestClientFactory;
 import io.searchbox.client.config.HttpClientConfig;
+import org.apache.activemq.spring.ActiveMQConnectionFactory;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.commons.io.IOUtils;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -44,6 +46,10 @@ import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jms.annotation.JmsListenerConfigurer;
+import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
+import org.springframework.jms.config.JmsListenerEndpointRegistrar;
+import org.springframework.jms.config.SimpleJmsListenerEndpoint;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
@@ -77,7 +83,7 @@ import static java.util.stream.Collectors.toList;
 @EnableSwagger2
 @EnableKafka
 @EnableAsync
-public class EventProcessorApplication {
+public class EventProcessorApplication implements JmsListenerConfigurer {
 
     private static final Logger LOGGER = Logger.getLogger(EventProcessorApplication.class);
 
@@ -138,6 +144,9 @@ public class EventProcessorApplication {
     @Value("${neo4jPassword:#{null}}")
     private String neo4jPassword;
 
+    @Value("${amqBrokerUrl:#{null}}")
+    private String amqBrokerUrl;
+
     private Session cassandraSession;
 
     private MappingManager cassandraMappingManager;
@@ -150,6 +159,8 @@ public class EventProcessorApplication {
 
     private List<EventConfig> neo4jConfigs = new ArrayList<>();
 
+    private ActorFactory actorFactory;
+
     @Bean
     public static PropertySourcesPlaceholderConfigurer properties() {
         return new PropertySourcesPlaceholderConfigurer();
@@ -157,8 +168,10 @@ public class EventProcessorApplication {
 
     @Bean
     public ActorFactory actorFactory(final MongoTemplate mongoTemplate) throws Exception {
-        ActorFactory actorFactory = new ActorFactory(actorSystem(), kafkaProducer(), jestClient(), mongoTemplate, mongoForBatch(), esIndexBatchSize, esUrl, kibanaOpsIndexName.toLowerCase().trim(), jdbcTemplate(), cassandraCluster(), cassandraSession, cassandraMappingManager, sessionFactory());
+        System.out.println(" ------- Actor Factory ----------");
+        ActorFactory actorFactory = new ActorFactory(actorSystem(), kafkaProducer(), jestClient(), mongoTemplate, mongoForBatch(), esIndexBatchSize, esUrl, kibanaOpsIndexName.toLowerCase().trim(), jdbcTemplate(), cassandraCluster(), cassandraSession, cassandraMappingManager, sessionFactory(), connectionFactory());
         initConfigs(actorFactory);
+        this.actorFactory = actorFactory;
         return actorFactory;
     }
 
@@ -317,13 +330,22 @@ public class EventProcessorApplication {
         Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBrokersCsv);
         props.put(ProducerConfig.RETRIES_CONFIG, 0);
-        props.put(ProducerConfig.BATCH_SIZE_CONFIG, 16384);
-        props.put(ProducerConfig.LINGER_MS_CONFIG, 1);
+        props.put(ProducerConfig.BATCH_SIZE_CONFIG, 10);
+        props.put(ProducerConfig.LINGER_MS_CONFIG, 0);
         props.put(ProducerConfig.BUFFER_MEMORY_CONFIG, 33554432);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
         return props;
     }
+
+    @Bean
+    public ActiveMQConnectionFactory connectionFactory() {
+        System.out.println(" ------- ActiveMQConnectionFactory Factory ----------");
+        ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory();
+        connectionFactory.setBrokerURL(amqBrokerUrl);
+        return connectionFactory;
+    }
+
 
     /**
      * Swagger 2 docket bean configuration.
@@ -403,5 +425,42 @@ public class EventProcessorApplication {
         System.out.println(" ------------- " + application);
     }
 
+    @Bean
+    public DefaultJmsListenerContainerFactory defaultContainerFactory(ActiveMQConnectionFactory connectionFactory) {
+        DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
+        factory.setConnectionFactory(connectionFactory);
+        factory.setConcurrency("1-" + Runtime.getRuntime().availableProcessors());
+        return factory;
+    }
 
+    @Override
+    public void configureJmsListeners(JmsListenerEndpointRegistrar jmsListenerEndpointRegistrar) {
+        jmsListenerEndpointRegistrar.setContainerFactory(defaultContainerFactory(connectionFactory()));
+
+        Stream.of(configs)
+                .map(resource -> {
+                    try {
+                        return Optional.of(new ObjectMapper().readValue(IOUtils.toString(resource.getInputStream()), EventConfig.class));
+                    } catch (IOException e) {
+                        LOGGER.info("Didn't load " + resource + " in config db. Doesn't appear to be a config file.");
+                        return Optional.empty();
+                    }
+                })
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .forEach(config -> {
+                    EventConfig eventConfig = (EventConfig) config;
+                    configIds.add(eventConfig.getConfigId().trim());
+                });
+        final JmsEventListener jmsEventListener = new JmsEventListener(actorFactory);
+
+        for (String configId : configIds) {
+            System.out.println("\t\t Starting AMQ Listener for: " + configId);
+            SimpleJmsListenerEndpoint endpoint = new SimpleJmsListenerEndpoint();
+            endpoint.setDestination(configId.trim());
+            endpoint.setMessageListener(jmsEventListener);
+            endpoint.setId(configId.trim());
+            jmsListenerEndpointRegistrar.registerEndpoint(endpoint);
+        }
+    }
 }

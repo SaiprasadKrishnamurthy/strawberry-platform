@@ -4,6 +4,7 @@ import akka.actor.ActorRef;
 import akka.dispatch.OnComplete;
 import akka.pattern.Patterns;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sai.strawberry.micro.actor.AmqProducerActor;
 import com.sai.strawberry.micro.actor.KafkaProducerActor;
 import com.sai.strawberry.micro.config.ActorFactory;
 import io.swagger.annotations.Api;
@@ -39,16 +40,16 @@ public class EventSubmissionResource {
     @RequestMapping(value = "/eventstream/{eventStreamConfigId}", method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
     public DeferredResult<ResponseEntity<?>> submitData(@RequestBody final Object payload, @PathVariable("eventStreamConfigId") final String eventStreamConfigId) throws Exception {
         DeferredResult<ResponseEntity<?>> deferredResult = new DeferredResult<>(5000L);
-        ActorRef kafkaProducerActor = actorFactory.newActor(KafkaProducerActor.class);
+        ActorRef amqProducerActor = actorFactory.newActor(AmqProducerActor.class);
         Map<String, Object> request = new HashMap<>();
         request.put("topic", eventStreamConfigId);
         request.put("payload", payload);
 
         // Find the right config.
 
-        Future<Object> submitPayloadToKafkaTopicFuture = Patterns.ask(kafkaProducerActor, request, KafkaProducerActor.timeout_in_seconds);
+        Future<Object> submitPayloadFuture = Patterns.ask(amqProducerActor, request, AmqProducerActor.timeout_in_seconds);
 
-        submitPayloadToKafkaTopicFuture.onComplete(new OnComplete<Object>() {
+        submitPayloadFuture.onComplete(new OnComplete<Object>() {
 
             @Override
             public void onComplete(Throwable failure, Object success) throws Throwable {

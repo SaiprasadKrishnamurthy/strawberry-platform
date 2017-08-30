@@ -53,10 +53,7 @@ public class EventProcessingService extends UntypedActor {
             // First check if this event should be considered at all.
             ConditionEvaluatorParamsHolder conditionEvaluatorParamsHolder = new ConditionEvaluatorParamsHolder(mongoTemplate, mongoBatchDB, cassandraSession, cassandraMappingManager, eventStreamConfig, doc);
 
-            System.out.println(" Entered here.... ");
             if (ConditionEvaluatorUtil.test(eventStreamConfig.getShouldAcceptConditionEvaluationClass(), conditionEvaluatorParamsHolder)) {
-                System.out.println(" Entered here.... 1");
-                System.out.println(" Entered here.... 2");
 
 
                 // Add the identifiers.

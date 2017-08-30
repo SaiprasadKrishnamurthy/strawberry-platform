@@ -1,4 +1,13 @@
 {
+  "sort": [
+    {
+      "logTimestamp": {
+        "order": "asc"
+      }
+    }
+  ],
+  "from": 0,
+  "size": 1000,
   "query": {
     "filtered": {
       "query": {
@@ -8,9 +17,30 @@
         "bool": {
           "must": [
             {
-              "range": {
-                "diskSpace": {
-                  "lte": 1000000000
+              "term": {
+                "loglevel": {
+                  "value": "INFO"
+                }
+              }
+            },
+            {
+              "term": {
+                "customerId": {
+                  "value": "2_hr_sanity_tests"
+                }
+              }
+            },
+            {
+              "term": {
+                "type": {
+                  "value": "inventory"
+                }
+              }
+            },
+            {
+              "term": {
+                "fileName": {
+                  "value": "inventory.log"
                 }
               }
             }

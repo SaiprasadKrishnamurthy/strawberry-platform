@@ -74,9 +74,7 @@ public class NotificationActor extends UntypedActor {
 
                 List<Map> recentlyNotifiedEvents = mongoTemplate.find(query, Map.class, "notification_throttles");
 
-                System.out.println(" Recently notif events " + recentlyNotifiedEvents);
                 shouldNotify = recentlyNotifiedEvents.size() < noOfNotifications;
-                System.out.println(" Should notify: " + shouldNotify);
                 if (!shouldNotify && recentlyNotifiedEvents != null && !recentlyNotifiedEvents.isEmpty()) {
                     // find the difference between n, n-1, n-2 etc.
                     long current = System.currentTimeMillis();
@@ -85,16 +83,11 @@ public class NotificationActor extends UntypedActor {
 
                     for (Map event : recentlyNotifiedEvents) {
                         long time = (long) event.get("notifiedTimestamp");
-                        System.out.println(" Time: " + time);
-                        System.out.println(" Current: " + current);
                         if ((current - time) < window) {
                             count++;
                         }
                     }
                     shouldNotify = count < noOfNotifications;
-                    System.out.println(" Should notify noof: " + noOfNotifications);
-                    System.out.println(" Should notify count: " + count);
-                    System.out.println(" Should notify here: " + shouldNotify);
                 }
                 if (shouldNotify) {
                     Map<String, Object> notificationTimestamps = new HashMap<>();
@@ -104,9 +97,6 @@ public class NotificationActor extends UntypedActor {
                     mongoTemplate.save(notificationTimestamps, "notification_throttles");
                 }
             }
-
-            System.out.println(" Should notify there: " + shouldNotify);
-
 
             if (shouldNotify && notificationTuple.getContext().shouldNotifyToKafkaTopic(notificationTuple.getNotificationChannel())) {
                 sender.send(new ProducerRecord<>(notificationTuple.getNotificationChannel(), MAPPER.writeValueAsString(notificationTuple.getContext().getDoc())));

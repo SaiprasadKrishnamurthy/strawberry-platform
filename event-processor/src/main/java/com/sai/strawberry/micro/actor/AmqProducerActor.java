@@ -4,32 +4,40 @@ import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
 import akka.dispatch.OnComplete;
 import akka.pattern.Patterns;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sai.strawberry.api.EventConfig;
 import com.sai.strawberry.micro.config.ActorFactory;
-import org.apache.kafka.clients.producer.Callback;
+import org.apache.activemq.spring.ActiveMQConnectionFactory;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.clients.producer.RecordMetadata;
+import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.core.MessageCreator;
 import scala.concurrent.Future;
 
+import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.Session;
+import javax.jms.TextMessage;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Created by saipkri on 08/09/16.
  */
-public class KafkaProducerActor extends UntypedActor {
+public class AmqProducerActor extends UntypedActor {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
     public static long timeout_in_seconds = 5 * 1000;
-    private final KafkaProducer<String, String> sender;
+    private final ActiveMQConnectionFactory activeMQConnectionFactory;
     private final ActorFactory actorFactory;
+    private final JmsTemplate jmsTemplate;
 
 
-    public KafkaProducerActor(final KafkaProducer<String, String> sender, final ActorFactory actorFactory) {
-        this.sender = sender;
+    public AmqProducerActor(ActiveMQConnectionFactory activeMQConnectionFactory, final ActorFactory actorFactory) {
+        this.activeMQConnectionFactory = activeMQConnectionFactory;
         this.actorFactory = actorFactory;
+        this.jmsTemplate = new JmsTemplate(activeMQConnectionFactory);
     }
 
     @Override
@@ -49,7 +57,16 @@ public class KafkaProducerActor extends UntypedActor {
                         doc.put("payload", ((Map) message).get("payload"));
                         doc.put("timestamp", System.currentTimeMillis());
                         try {
-                            sender.send(new ProducerRecord<>(eventStreamConfig.getConfigId(), MAPPER.writeValueAsString(doc)));
+                            jmsTemplate.send(eventStreamConfig.getConfigId(), (MessageCreator) session -> {
+                                try {
+                                    TextMessage msg = session.createTextMessage();
+                                    msg.setText(MAPPER.writeValueAsString(doc));
+                                    return msg;
+                                } catch (JsonProcessingException e) {
+                                    e.printStackTrace();
+                                    throw new RuntimeException(e);
+                                }
+                            });
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }

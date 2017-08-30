@@ -34,7 +34,6 @@ public class SpelExpressionEvaluationActor extends UntypedActor {
 
     @Override
     public void onReceive(final Object _context) throws Throwable {
-        System.out.println(" ------ ENTERED SPEL ----------- "+_context);
         if (_context instanceof EventProcessingContext) {
             EventProcessingContext context = (EventProcessingContext) _context;
             EventConfig config = context.getConfig();
@@ -53,7 +52,6 @@ public class SpelExpressionEvaluationActor extends UntypedActor {
                         String spel = spelEntry.getSpelExpressionQuery();
                         Expression expression = SpelExpressionCache.compiledExpression(spel.trim());
                         StandardEvaluationContext spelEvalContext = new StandardEvaluationContext(context.getDoc());
-                        System.out.println(" Spel result: "+expression.getValue(spelEvalContext, Boolean.class));
                         if (expression.getValue(spelEvalContext, Boolean.class)) {
                             // SEND IT TO NOTIFICATION ACTOR.
                             ActorRef notificationActor = actorFactory.newActor(NotificationActor.class);

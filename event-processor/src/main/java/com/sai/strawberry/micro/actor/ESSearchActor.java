@@ -26,10 +26,8 @@ public class ESSearchActor extends UntypedActor {
 
     @Override
     public void onReceive(final Object message) throws Throwable {
-        System.out.println(" ---- " + message);
         if (message instanceof SearchletQueryTuple) {
             SearchletQueryTuple searchletQueryTuple = (SearchletQueryTuple) message;
-            System.out.println(" --- " + searchletQueryTuple.getEsQueryJson());
 
             List<Map> response = null;
             Map searchResponse = rt.postForObject(esUrl + "/" + searchletQueryTuple.getEventConfigId() + "/_search", searchletQueryTuple.getEsQueryJson(), Map.class, Collections.emptyMap());
@@ -39,6 +37,10 @@ public class ESSearchActor extends UntypedActor {
                 response = hitsList.stream()
                         .map(doc -> processHighlights(doc))
                         .map(doc -> (Map) doc.get("_source"))
+                        .map(doc -> {
+                            doc.put("__total__", hits.get("total"));
+                            return doc;
+                        })
                         .collect(toList());
             } else {
                 // Aggregations.
@@ -56,7 +58,6 @@ public class ESSearchActor extends UntypedActor {
 
     private Map processHighlights(Map doc) {
         Map _source = (Map) doc.get("_source");
-        System.out.println("\t\t Processing Highlights: " + doc.get("highlight"));
         if (doc.get("highlight") == null) {
             return doc;
         } else {

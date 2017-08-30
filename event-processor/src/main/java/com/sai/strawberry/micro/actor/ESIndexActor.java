@@ -5,6 +5,8 @@ import com.sai.strawberry.micro.model.EventProcessingContext;
 import io.searchbox.client.JestClient;
 import io.searchbox.core.Bulk;
 import io.searchbox.core.Index;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +23,7 @@ public class ESIndexActor extends UntypedActor {
     private final Lock lock = new ReentrantLock();
     private final int indexBatchSize;
     private List<Map> payloadsTobeIndexedToEs = new ArrayList<>();
+    private static final Logger LOGGER = LoggerFactory.getLogger(ESIndexActor.class);
 
 
     public ESIndexActor(final JestClient jestClient, final int indexBatchSize) {
@@ -43,6 +46,7 @@ public class ESIndexActor extends UntypedActor {
                         bulkBuilder.addAction(index);
                     }
                     jestClient.execute(bulkBuilder.build());
+                    LOGGER.info("No of Records indexed in ES: {}", payloadsTobeIndexedToEs.size());
                     payloadsTobeIndexedToEs.clear();
                 } finally {
                     lock.unlock();

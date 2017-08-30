@@ -2,6 +2,7 @@ package com.sai.strawberry.micro.actor;
 
 import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
+import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.mapping.Mapper;
 import com.datastax.driver.mapping.MappingManager;
@@ -79,7 +80,7 @@ public class AppCallbackActor extends UntypedActor {
             List<Object> entitiesToBeSaved = cassandraBackedDataTransformer.entities(cassandraSession, mappingManager, eventStreamConfig, jsonIn);
             entitiesToBeSaved.forEach(entityToBeSaved -> {
                 Mapper<Object> mapper = mappingManager.mapper((Class<Object>) entityToBeSaved.getClass());
-                mapper.save(entityToBeSaved);
+                mapper.save(entityToBeSaved, Mapper.Option.tracing(true));
             });
             return cassandraBackedDataTransformer.process(cassandraSession, mappingManager, eventStreamConfig, jsonIn);
         } else if (Neo4JBackedDataTransformer.class.isAssignableFrom(aClass)) {
